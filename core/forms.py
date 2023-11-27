@@ -1,14 +1,15 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-
-from core.models import User, Car
+from core.models import User, ReportEntry
 
 
 class UserCreateForm(UserCreationForm):
-    car = forms.ModelChoiceField(
-        queryset=Car.objects.filter(country__in=['Germany', 'Italy'])
-    )
-
     class Meta:
         model = User
-        fields = ('username', 'password1', 'password2', 'car')
+        fields = ['username', 'password1', 'password2']
+
+
+class WorkerForm(forms.ModelForm):
+    class Meta:
+        model = ReportEntry
+        fields = ['machine', 'detail', 'quantity']

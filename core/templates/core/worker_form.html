@@ -1,0 +1,29 @@
+{% extends 'core/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+    <h1>Форма для рабочего</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {{ form|crispy }}
+
+        <button type="submit" class="btn btn-primary mt-4">Submit</button>
+
+    </form>
+{% endblock %}
+
+{% block scripts %}
+
+    <script>
+        $("#id_detail").select2({
+            theme: "bootstrap-5",
+        })
+        $("#id_machine").select2({
+            theme: "bootstrap-5",
+        })
+    </script>
+
+{% endblock %}
