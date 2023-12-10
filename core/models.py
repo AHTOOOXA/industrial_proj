@@ -1,4 +1,7 @@
+from django.utils.timezone import now
+
 from django.conf import settings
+from django.contrib import admin
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group
 
@@ -65,16 +68,32 @@ class Detail(models.Model):
         return self.name
 
 
+class Shift(models.Model):
+    name = models.CharField(max_length=40)
+
+
+class Report(models.Model):
+    # date time ...
+    user = models.ForeignKey(User, null=True, blank=False, on_delete=models.CASCADE)
+    date = models.DateTimeField(default=now)
+    # shift = models.ForeignKey(Shift, on_delete=models.CASCADE)
+
+
 class ReportEntry(models.Model):
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    report = models.ForeignKey(Report, null=True, on_delete=models.CASCADE)
     machine = models.ForeignKey(Machine, null=True, on_delete=models.CASCADE)
     detail = models.ForeignKey(Detail, null=True, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
 
-    def __str__(self):
-        return f'ReportEntry {self.pk} by {self.user.username}'
+
+class Order(models.Model):
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    date = models.DateTimeField(default=now)
 
 
-# class Report(models.Model):
-#     # date time ...
-#     pass
+class OrderEntry(models.Model):
+    order = models.ForeignKey(Order, null=True, on_delete=models.CASCADE)
+    detail = models.ForeignKey(Detail, null=True, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()

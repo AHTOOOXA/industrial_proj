@@ -1,0 +1,31 @@
+<div id="reports-list">
+    {% for report in reports %}
+        <div class="card bg-light mb-3">
+            <div class="card-body">
+                <div class="container-fluid pt-0">
+                    <h5 class="card-title">Отчет - {{ report.user.username }} {{ report.id }}</h5>
+
+                    <p class="card-text">
+                        {{ report.date }}
+                    </p>
+
+                    {% include 'core/partials/report_entries_list.html' %}
+
+                    <div class="text-center">
+                        <a class="btn btn-secondary"
+                           type="button"
+                           href="{% url 'reports_edit' report.pk %}">Изменить
+                        </a>
+
+                        <button class="btn btn-danger"
+                                type="button"
+                                hx-post="{% url 'reports_delete' report.pk %}"
+                                hx-target="#reports-list"
+                                hx-trigger="click">Удалить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

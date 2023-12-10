@@ -1,0 +1,31 @@
+<div id="order-entries-list-{{ order.pk }}">
+    <table class="table table-bordered bg-white">
+        <thead>
+        <tr>
+            <th scope="col">Деталь</th>
+            <th scope="col">Количество</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for order_entry in order.orderentry_set.all %}
+            <tr>
+                <td>
+                    {{ order_entry.detail }}
+                </td>
+                <td>
+                    {{ order_entry.quantity }}
+                </td>
+                <td class="justify-content-center" style="width: 5%">
+                    <button class="btn btn-danger"
+                            type="button"
+                            hx-post="{% url 'order_entries_delete' order.pk order_entry.pk %}"
+                            hx-target="#order-entries-list-{{ order.pk }}"
+                            hx-trigger="click">X
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

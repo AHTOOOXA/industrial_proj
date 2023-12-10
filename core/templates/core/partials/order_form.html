@@ -1,0 +1,37 @@
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h1>Новый заказ</h1>
+
+    <form method="POST" enctype="multipart/form-data" id="order-form">
+        {% csrf_token %}
+        {% crispy form %}
+        {{ formset.management_form }}
+        {% for entry_form in formset %}
+            {% crispy entry_form %}
+        {% endfor %}
+
+        <button hx-get="{% url 'add_order_entry_form' %}"
+                hx-target="this"
+                hx-swap="beforebegin"
+                hx-vals='js:{totalForms: $("#id_orderentry_set-TOTAL_FORMS").val()}'
+                type="button"
+                class="btn btn-success me-2">Добавить еще
+        </button>
+{#        переделать кнопку снизу #}
+        <button type="submit"
+                class="btn btn-primary me-2"
+                hx-post="{% url 'orders_add' %}"
+                hx-include="#order-form">Подтвердить</button>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+
+    <script>
+        $(".select").select2({
+            theme: "bootstrap-5",
+        })
+    </script>
+
+{% endblock %}

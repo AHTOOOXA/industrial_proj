@@ -1,0 +1,33 @@
+{% extends 'core/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h1>Отчет о смене</h1>
+
+    <form method="POST" enctype="multipart/form-data" id="report-form">
+        {% csrf_token %}
+        {% crispy form %}
+        {{ formset.management_form }}
+        {% for entry_form in formset %}
+            {% crispy entry_form %}
+        {% endfor %}
+
+        <button hx-get="{% url 'add_report_entry_form' %}"
+                hx-swap="beforebegin"
+                hx-vals='js:{totalForms: $("#id_reportentry_set-TOTAL_FORMS").val()}'
+                type="button"
+                class="btn btn-success me-2">Добавить еще
+        </button>
+        <button type="submit" class="btn btn-primary me-2">Подтвердить</button>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+
+    <script>
+        $(".select").select2({
+            theme: "bootstrap-5",
+        })
+    </script>
+
+{% endblock %}

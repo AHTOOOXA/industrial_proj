@@ -1,0 +1,31 @@
+<div id="orders-list">
+    {% for order in orders %}
+        <div class="card bg-light mb-3">
+            <div class="card-body">
+                <div class="container-fluid pt-0">
+                    <h5 class="card-title">Заказ - {{ order.name }}</h5>
+
+                    <p class="card-text">
+                        {{ order.date }}
+                    </p>
+
+                    {% include 'core/partials/order_entries_list.html' %}
+
+                    <div class="float-end">
+                        <a class="btn btn-secondary"
+                           type="button"
+                           href="{% url 'orders_edit' order.pk %}">Изменить
+                        </a>
+
+                        <button class="btn btn-danger"
+                                type="button"
+                                hx-post="{% url 'orders_delete' order.pk %}"
+                                hx-target="#orders-list"
+                                hx-trigger="click">Удалить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

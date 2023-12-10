@@ -1,0 +1,13 @@
+{% load crispy_forms_tags %}
+{#{% for new_form in new_formset %}#}
+{#    {% crispy new_form %}#}
+{#{% endfor %}#}
+{#{% crispy new_formset %}#}
+{#{{ new_form }}#}
+{% crispy new_form %}
+
+<input type="hidden"
+       name="orderentry_set-TOTAL_FORMS"
+       value="{{ new_total_forms_count }}"
+       id="id_orderentry_set-TOTAL_FORMS"
+       hx-swap-oob="true">

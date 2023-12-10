@@ -1,0 +1,35 @@
+<div id="report-entries-list-{{ report.pk }}">
+    <table class="table table-bordered bg-white">
+        <thead>
+        <tr>
+            <th scope="col">Станок</th>
+            <th scope="col">Деталь</th>
+            <th scope="col">Количество</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for report_entry in report.reportentry_set.all %}
+            <tr>
+                <td>
+                    {{ report_entry.machine }}
+                </td>
+                <td>
+                    {{ report_entry.detail }}
+                </td>
+                <td>
+                    {{ report_entry.quantity }}
+                </td>
+                <td class="justify-content-center" style="width: 5%">
+                    <button class="btn btn-danger"
+                            type="button"
+                            hx-post="{% url 'report_entries_delete' report.pk report_entry.pk %}"
+                            hx-target="#report-entries-list-{{ report.pk }}"
+                            hx-trigger="click">X
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

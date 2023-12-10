@@ -1,0 +1,26 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+    <h1 class="d-flex justify-content-center">Stats page</h1>
+
+    <div class="row">
+        <div class="col-sm-4 d-grid gap-3">
+            <h2 class="d-flex justify-content-center">Список заказов</h2>
+
+            <a class="btn btn-success"
+               type="button"
+               href="{% url 'orders_add' %}">
+                Создать заказ
+            </a>
+
+            {% include 'core/partials/orders_list.html' %}
+        </div>
+        <div class="col-sm-8">
+            <h2 class="d-flex justify-content-center">Таблица</h2>
+
+            {% include 'core/partials/table.html' %}
+        </div>
+    </div>
+
+{% endblock %}

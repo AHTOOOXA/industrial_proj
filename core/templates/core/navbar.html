@@ -6,27 +6,30 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         {% if user.is_authenticated %}
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'home' %}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'table' %}">Table</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'worker_form' %}">Worker Form</a>
-                </li>
-            </ul>
-            <form class="d-flex">
-                {% if user.is_authenticated %}
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'report_form' %}">Создать отчет</a>
+                    </li>
+                    {% if user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'reports_view' %}">Отчеты</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'stats' %}">Статистика</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register_user_admin' %}">Зарегестрировать пользователя</a>
+                        </li>
+                    {% endif %}
+                </ul>
+                <form class="d-flex">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <a class="nav-link disabled"> Logged in as {{ user.get_username }} </a>
                         <a class="nav-link" href="{% url 'logout_user' %}">Logout</a>
                     </ul>
-                {% endif %}
-            </form>
-        </div>
+                </form>
+            </div>
         {% endif %}
     </div>
 </nav>
