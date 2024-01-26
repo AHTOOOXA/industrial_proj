@@ -1,19 +1,26 @@
+import datetime
+import itertools
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import F, Count
+from django.db.models.functions import Trunc
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.template.context_processors import csrf
 from crispy_forms.utils import render_crispy_form
 from django.utils.timezone import now
+from django.views.generic import ListView
+from django_tables2 import SingleTableView, RequestConfig
 
 from .models import ReportEntry, Report, OrderEntry, Order, Machine
 from core.forms import UserCreateForm, UserCreateAdminForm, ReportForm, ReportEntryForm, ReportEntryFormset, OrderForm, \
     OrderEntryForm, OrderEntryFormset, NewReportForm
 from .decorators import allowed_user_roles, unauthenticated_user
+from .tables import ReportEntryTable, ReportTable, MyTable
 
 
-# Create your views here.
 @login_required(login_url='login_user')
 def home(request):
     return render(request, 'core/home.html')
@@ -24,9 +31,25 @@ def home(request):
 def stats(request):
     orders = Order.objects.all().order_by('-id')
     machines = Machine.objects.all()
+
+    table = []
+    timestamps = [datetime.date.today() - datetime.timedelta(days=1) + datetime.timedelta(days=i) for i in range(0, 6)]
+    for i in range(len(timestamps) - 1):
+        row_objs = ReportEntry.objects.filter(
+            report__date__range=(timestamps[i], timestamps[i + 1]))
+        row = [timestamps[i]]
+        for machine in machines:
+            obj = row_objs.filter(machine=machine)
+            if obj:
+                # row.append(obj)
+                row.append(str(obj[0].detail) + '\n' + str(obj[0].quantity))
+            else:
+                row.append('')
+        table.append(row)
     context = {
         'orders': orders,
         'machines': machines,
+        'table': table
     }
     return render(request, 'core/stats.html', context)
 

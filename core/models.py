@@ -9,9 +9,9 @@ from django.contrib.auth.models import AbstractUser, Group
 # Create your models here.
 class User(AbstractUser):
     class Role(models.TextChoices):
-        ADMIN = 'ADMIN', 'Admin'
-        MODERATOR = 'MODERATOR', 'Moderator'
-        WORKER = 'WORKER', 'Worker'
+        ADMIN = 'ADMIN', 'Администратор'
+        MODERATOR = 'MODERATOR', 'Модератор'
+        WORKER = 'WORKER', 'Рабочий'
 
     role = models.CharField(max_length=50, choices=Role.choices, default=Role.WORKER)
 
