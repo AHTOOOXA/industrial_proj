@@ -1,0 +1,23 @@
+<div id="details-list">
+  {% for detail in details %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <div class="row">
+          <h5 class="col-auto me-auto align-self-center">{{ detail.name }}</h5>
+          <div class="col-auto ms-auto">
+            <div class="btn-group">
+              <a class="btn btn-secondary" type="button" href="{% url 'details_edit' detail.pk %}">И</a>
+              <button class="btn btn-danger"
+                      type="button"
+                      hx-post="{% url 'details_delete' detail.pk %}"
+                      hx-target="#details-list"
+                      hx-trigger="click"
+                      hx-confirm="Вы уверены что вы хотите удалить {{ detail.name }}">Х
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>

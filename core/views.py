@@ -14,11 +14,11 @@ from django.utils.timezone import now
 from django.views.generic import ListView
 from django_tables2 import SingleTableView, RequestConfig
 
-from .models import ReportEntry, Report, OrderEntry, Order, Machine
+from .models import ReportEntry, Report, OrderEntry, Order, Machine, Table, Detail, User
 from core.forms import UserCreateForm, UserCreateAdminForm, ReportForm, ReportEntryForm, ReportEntryFormset, OrderForm, \
-    OrderEntryForm, OrderEntryFormset, NewReportForm
+    OrderEntryForm, OrderEntryFormset, DetailForm, MachineForm
 from .decorators import allowed_user_roles, unauthenticated_user
-from .tables import ReportEntryTable, ReportTable, MyTable
+from .scripts import get_shifts_table
 
 
 @login_required(login_url='login_user')
@@ -30,28 +30,35 @@ def home(request):
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def stats(request):
     orders = Order.objects.all().order_by('-id')
+    order_entries_leftovers = {}
+    for order_entry in OrderEntry.objects.all():
+        order_entries_leftovers[order_entry.id] = order_entry.quantity
+        for report_entry in ReportEntry.objects.filter(report__order=order_entry.order):
+            order_entries_leftovers[order_entry.id] -= report_entry.quantity
     machines = Machine.objects.all()
-
-    table = []
-    timestamps = [datetime.date.today() - datetime.timedelta(days=1) + datetime.timedelta(days=i) for i in range(0, 6)]
-    for i in range(len(timestamps) - 1):
-        row_objs = ReportEntry.objects.filter(
-            report__date__range=(timestamps[i], timestamps[i + 1]))
-        row = [timestamps[i]]
-        for machine in machines:
-            obj = row_objs.filter(machine=machine)
-            if obj:
-                # row.append(obj)
-                row.append(str(obj[0].detail) + '\n' + str(obj[0].quantity))
-            else:
-                row.append('')
-        table.append(row)
+    table = get_shifts_table()
     context = {
         'orders': orders,
+        'order_entries_leftovers': order_entries_leftovers,
         'machines': machines,
         'table': table
     }
     return render(request, 'core/stats.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def shift_table(request, value):
+    current_date = Table.objects.all()[0].current_date
+    new_date = current_date + int(value) * datetime.timedelta(hours=12)
+    Table.objects.all().update(current_date=new_date)
+    table = get_shifts_table(new_date)
+    machines = Machine.objects.all()
+    context = {
+        'machines': machines,
+        'table': table
+    }
+    return render(request, 'core/partials/table.html', context)
 
 
 @login_required(login_url='login_user')
@@ -81,7 +88,35 @@ def orders_add(request):
 @login_required(login_url='login_user')
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def orders_edit(request, pk):
-    return redirect('stats')
+    order = Order.objects.get(pk=pk)
+    if request.method == 'GET':
+        form = OrderForm(instance=order)
+        formset = OrderEntryFormset(instance=order)
+        context = {
+            'order': order,
+            'form': form,
+            'formset': formset,
+        }
+        return render(request, 'core/orders_edit.html', context)
+    if request.method == 'POST':
+        form = OrderForm(request.POST, instance=order)
+        print(form.is_valid())
+        if form.is_valid():
+            order_instance = form.save(commit=False)
+            order_instance.save()
+
+            entry_formset = OrderEntryFormset(request.POST, request.FILES, instance=order_instance)
+            print(entry_formset.is_valid())
+            print(entry_formset.errors)
+            if entry_formset.is_valid():
+                for entry_form in entry_formset:
+                    if entry_form.cleaned_data['DELETE'] is not True:
+                        entry_form.save()
+                    else:
+                        print(entry_form.cleaned_data)
+                        if entry_form.cleaned_data['id'] is not None:
+                            entry_form.cleaned_data['id'].delete()
+        return redirect('stats')
 
 
 @login_required(login_url='login_user')
@@ -143,51 +178,6 @@ def logout_user(request):
     return redirect('home')
 
 
-def register_user(request):
-    if request.method == "POST":
-        form = UserCreateForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password1']
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            messages.success(request, ("Registration Successful!"))
-            return redirect('home')
-        else:
-            messages.error(request, ("Error"))
-            return redirect('register_user')
-    else:
-        form = UserCreateForm()
-        return render(request, 'core/register.html', {
-            'form': form,
-        })
-
-
-@login_required(login_url='login_user')
-@allowed_user_roles(['ADMIN', 'MODERATOR'])
-def register_user_admin(request):
-    if request.method == "GET":
-        context = {'form': UserCreateAdminForm()}
-        return render(request, 'core/register_employee.html', context)
-    if request.method == "POST":
-        form = UserCreateAdminForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, (f'Пользователь успешно зарегистрирован'))
-            # new_form = UserCreateAdminForm()
-            # ctx = {}
-            # ctx.update(csrf(request))
-            # form_html = render_crispy_form(new_form, context=ctx)
-            response = HttpResponse()
-            response['HX-Redirect'] = request.build_absolute_uri('register_user_admin')
-            return response
-        ctx = {}
-        ctx.update(csrf(request))
-        form_html = render_crispy_form(form, context=ctx)
-        return HttpResponse(form_html)
-
-
 @login_required(login_url='login_user')
 def report_form(request):
     if request.method == "GET":
@@ -213,7 +203,9 @@ def report_form(request):
             entry_formset = ReportEntryFormset(request.POST, request.FILES, instance=report_instance)
             if entry_formset.is_valid():
                 for entry_form in entry_formset:
-                    entry_form.save()
+                    if entry_form.cleaned_data['DELETE'] is not True:
+                        entry_form.save()
+            messages.success(request, 'Отчет успешно отправлен!')
         return redirect('report_form')
 
 
@@ -261,7 +253,8 @@ def reports_add(request):
             entry_formset = ReportEntryFormset(request.POST, request.FILES, instance=report_instance)
             if entry_formset.is_valid():
                 for entry_form in entry_formset:
-                    entry_form.save()
+                    if entry_form.cleaned_data['DELETE'] is not True:
+                        entry_form.save()
         return redirect('reports_view')
 
 
@@ -291,7 +284,13 @@ def reports_edit(request, pk):
             print(entry_formset.errors)
             if entry_formset.is_valid():
                 for entry_form in entry_formset:
-                    entry_form.save()
+                    if entry_form.cleaned_data['DELETE'] is not True:
+                        entry_form.save()
+                    else:
+                        print(entry_form.cleaned_data)
+                        if entry_form.cleaned_data['id'] is not None:
+                            entry_form.cleaned_data['id'].delete()
+                            # entry = ReportEntry.objects.get(entry_form.cleaned_data['id']).delete()
         return redirect('reports_view')
 
 
@@ -299,7 +298,7 @@ def reports_edit(request, pk):
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def reports_delete(request, pk):
     Report.objects.get(pk=pk).delete()
-    reports = Report.objects.all()
+    reports = Report.objects.all().order_by('-id')
     context = {
         'reports': reports,
     }
@@ -308,10 +307,199 @@ def reports_delete(request, pk):
 
 @login_required(login_url='login_user')
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
-def report_entries_delete(request, r_pk, re_pk):
-    ReportEntry.objects.get(pk=re_pk).delete()
-    report = Report.objects.get(pk=r_pk)
+def details_view(request):
+    details = Detail.objects.all().order_by('-id')
     context = {
-        'report': report,
+        'details': details,
     }
-    return render(request, 'core/partials/report_entries_list.html', context)
+    return render(request, 'core/details.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def details_add(request):
+    if request.method == "GET":
+        form = DetailForm()
+        context = {
+            'form': form,
+        }
+        return render(request, 'core/detail_form.html', context)
+    if request.method == "POST":
+        form = DetailForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Деталь успешно добавлена')
+        return redirect('details_view')
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def details_edit(request, pk):
+    detail = Detail.objects.get(pk=pk)
+    if request.method == 'GET':
+        form = DetailForm(instance=detail)
+        context = {
+            'detail': detail,
+            'form': form,
+        }
+        return render(request, 'core/details_edit.html', context)
+    if request.method == 'POST':
+        form = DetailForm(request.POST, instance=detail)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Деталь успешно изменена')
+        return redirect('details_view')
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def details_delete(request, pk):
+    Detail.objects.get(pk=pk).delete()
+    details = Detail.objects.all().order_by('-id')
+    context = {
+        'details': details,
+    }
+    return render(request, 'core/partials/details_list.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def machines_view(request):
+    machines = Machine.objects.all().order_by('-id')
+    context = {
+        'machines': machines,
+    }
+    return render(request, 'core/machines.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def machines_add(request):
+    if request.method == "GET":
+        form = MachineForm()
+        context = {
+            'form': form,
+        }
+        return render(request, 'core/machine_form.html', context)
+    if request.method == "POST":
+        form = MachineForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Станок успешно добавлен')
+        return redirect('machines_view')
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def machines_edit(request, pk):
+    machine = Machine.objects.get(pk=pk)
+    if request.method == 'GET':
+        form = MachineForm(instance=machine)
+        context = {
+            'machine': machine,
+            'form': form,
+        }
+        return render(request, 'core/machines_edit.html', context)
+    if request.method == 'POST':
+        form = MachineForm(request.POST, instance=machine)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Станок успешно изменен')
+        return redirect('machines_view')
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def machines_delete(request, pk):
+    Machine.objects.get(pk=pk).delete()
+    machines = Machine.objects.all().order_by('-id')
+    context = {
+        'machines': machines,
+    }
+    return render(request, 'core/partials/machines_list.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def users_view(request):
+    users = User.objects.all().order_by('-id')
+    context = {
+        'users': users,
+    }
+    return render(request, 'core/users.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def users_add(request):
+    if request.method == "GET":
+        context = {
+            'form': UserCreateAdminForm()
+        }
+        return render(request, 'core/user_form.html', context)
+    if request.method == "POST":
+        form = UserCreateAdminForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Сотрудник успешно зарегистрирован')
+        return redirect('users_view')
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def users_edit(request, pk):
+    user = User.objects.get(pk=pk)
+    if request.method == 'GET':
+        form = UserCreateAdminForm(instance=user)
+        context = {
+            'user': user,
+            'form': form,
+        }
+        return render(request, 'core/users_edit.html', context)
+    if request.method == 'POST':
+        form = UserCreateAdminForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Станок успешно изменен')
+        return redirect('users_view')
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def users_delete(request, pk):
+    User.objects.get(pk=pk).delete()
+    users = User.objects.all().order_by('-id')
+    context = {
+        'users': users,
+    }
+    return render(request, 'core/partials/users_list.html', context)
+
+
+def test(request):
+    table = []
+    timestamps = [datetime.date.today() - datetime.timedelta(days=1) + datetime.timedelta(days=i) for i in range(0, 6)]
+
+    machines = Machine.objects.all()
+    for i in range(len(timestamps) - 1):
+        row_objs = ReportEntry.objects.filter(
+            report__date__range=(timestamps[i], timestamps[i + 1]))
+        row = [timestamps[i]]
+        for machine in machines:
+            obj = row_objs.filter(machine=machine)
+            if obj:
+                # row.append(obj)
+                row.append(str(obj[0].detail) + ':\n' + str(obj[0].quantity))
+            else:
+                row.append('empty')
+        table.append(row)
+
+    # my_table = MyTable(table)
+
+    # # Use RequestConfig to configure the table
+    # RequestConfig(request).configure(my_table)
+    #
+    # return render(request, 'test.html', context={'my_table': my_table})
+
+    s = '\n'.join(['    '.join(str(row)) for row in table])
+    print(s)
+    return render(request, 'test.html', context={'table': table, 'machines': machines})

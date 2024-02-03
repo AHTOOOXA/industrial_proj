@@ -9,7 +9,9 @@
         {% crispy form %}
         {{ formset.management_form }}
         {% for entry_form in formset %}
-            {% crispy entry_form %}
+            <div id="report-entry-form-wrapper">
+                {% crispy entry_form %}
+            </div>
         {% endfor %}
 
         <button hx-get="{% url 'add_report_entry_form' %}"
@@ -24,10 +26,15 @@
 
 {% block scripts %}
 
+{#    <script>#}
+{#        $(".select").select2({#}
+{#            theme: "bootstrap-5",#}
+{#        })#}
+{#    </script>#}
     <script>
-        $(".select").select2({
-            theme: "bootstrap-5",
-        })
+        function handleCancelClick(button) {
+            button.parentNode.querySelector('input[type=checkbox]').checked = true;
+            button.parentNode.style.display = "none";
+        }
     </script>
-
 {% endblock %}

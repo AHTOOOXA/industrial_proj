@@ -68,15 +68,30 @@ class Detail(models.Model):
         return self.name
 
 
-class Shift(models.Model):
-    name = models.CharField(max_length=40)
+class Order(models.Model):
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    number = models.PositiveIntegerField(default=0)
+    date = models.DateTimeField(default=now)
+
+    def __str__(self):
+        return str(self.number)
+
+
+class OrderEntry(models.Model):
+    order = models.ForeignKey(Order, null=True, on_delete=models.CASCADE)
+    detail = models.ForeignKey(Detail, null=True, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
 
 
 class Report(models.Model):
     # date time ...
     user = models.ForeignKey(User, null=True, blank=False, on_delete=models.CASCADE)
     date = models.DateTimeField(default=now)
-    # shift = models.ForeignKey(Shift, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, null=True, blank=False, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "ОТЧЕТ " + str(self.user) + ": " + str(self.date)
 
 
 class ReportEntry(models.Model):
@@ -87,13 +102,5 @@ class ReportEntry(models.Model):
     quantity = models.PositiveIntegerField()
 
 
-class Order(models.Model):
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
-    name = models.CharField(max_length=200)
-    date = models.DateTimeField(default=now)
-
-
-class OrderEntry(models.Model):
-    order = models.ForeignKey(Order, null=True, on_delete=models.CASCADE)
-    detail = models.ForeignKey(Detail, null=True, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
+class Table(models.Model):
+    current_date = models.DateTimeField(default=now)

@@ -1,31 +1,27 @@
 <div id="orders-list">
-    {% for order in orders %}
-        <div class="card bg-light mb-3">
-            <div class="card-body">
-                <div class="container-fluid pt-0">
-                    <h5 class="card-title">Заказ - {{ order.name }}</h5>
-
-                    <p class="card-text">
-                        {{ order.date }}
-                    </p>
-
-                    {% include 'core/partials/order_entries_list.html' %}
-
-                    <div class="float-end">
-                        <a class="btn btn-secondary"
-                           type="button"
-                           href="{% url 'orders_edit' order.pk %}">Изменить
-                        </a>
-
-                        <button class="btn btn-danger"
-                                type="button"
-                                hx-post="{% url 'orders_delete' order.pk %}"
-                                hx-target="#orders-list"
-                                hx-trigger="click">Удалить
-                        </button>
-                    </div>
-                </div>
+  {% for order in orders %}
+    <div class="card mb-1">
+      <div class="card-header">
+        <div class="row">
+          <h5 class="col-auto me-auto align-self-center">{{ order.name }} - {{ order.date|date:'d.m.y H:i' }}</h5>
+          <div class="col-auto ms-auto">
+            <div class="btn-group">
+              <a class="btn btn-secondary" type="button" href="{% url 'orders_edit' order.pk %}">И</a>
+              <button class="btn btn-danger"
+                      type="button"
+                      hx-post="{% url 'orders_delete' order.pk %}"
+                      hx-target="#orders-list"
+                      hx-trigger="click">Х
+              </button>
             </div>
+          </div>
         </div>
-    {% endfor %}
+      </div>
+      <div class="card-body">
+        {% include 'core/partials/order_entries_list.html' %}
+
+
+      </div>
+    </div>
+  {% endfor %}
 </div>

@@ -4,15 +4,13 @@
     <div class="row justify-content-center">
     <div class="col-6">
         <div class="d-grid gap-3">
-{#            <h1 class="d-flex justify-content-center">Отчеты</h1>#}
-
             <a class="btn btn-success"
                type="button"
-               href="{% url 'reports_add' %}">
-                Создать отчет
+               href="{% url 'machines_add' %}">
+                Создать станок
             </a>
 
-            {% include 'core/partials/reports_list.html' %}
+            {% include 'core/partials/machines_list.html' %}
         </div>
     </div>
     </div>

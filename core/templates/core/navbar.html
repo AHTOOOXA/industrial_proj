@@ -1,35 +1,47 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'home' %}">ProStatIT</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        {% if user.is_authenticated %}
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'report_form' %}">Создать отчет</a>
-                    </li>
-                    {% if user.is_superuser %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'reports_view' %}">Отчеты</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'stats' %}">Статистика</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'register_user_admin' %}">Зарегестрировать пользователя</a>
-                        </li>
-                    {% endif %}
-                </ul>
-                <form class="d-flex">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <a class="nav-link disabled"> Logged in as {{ user.get_username }} </a>
-                        <a class="nav-link" href="{% url 'logout_user' %}">Logout</a>
-                    </ul>
-                </form>
-            </div>
-        {% endif %}
-    </div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'home' %}">ProStatIT</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    {% if user.is_authenticated %}
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link {% if "report_form" in request.path %}active{% endif %}"
+               href="{% url 'report_form' %}">Отчет о смене</a>
+          </li>
+          {% if user.is_superuser %}
+            <li class="nav-item">
+              <a class="nav-link {% if "stats" in request.path %}active{% endif %}"
+                 href="{% url 'stats' %}">Статистика</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if "reports" in request.path %}active{% endif %}"
+                 href="{% url 'reports_view' %}">Отчеты</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if "details" in request.path %}active{% endif %}"
+                 href="{% url 'details_view' %}">Детали</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if "machines" in request.path %}active{% endif %}"
+                 href="{% url 'machines_view' %}">Станки</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if "users" in request.path %}active{% endif %}"
+                 href="{% url 'users_view' %}">Пользователи</a>
+            </li>
+          {% endif %}
+        </ul>
+        <form class="d-flex">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <a class="nav-link disabled"> {{ user.get_username }} </a>
+            <a class="nav-link" href="{% url 'logout_user' %}">Выйти</a>
+          </ul>
+        </form>
+      </div>
+    {% endif %}
+  </div>
 </nav>
