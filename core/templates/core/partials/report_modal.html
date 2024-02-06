@@ -1,0 +1,40 @@
+<div class="modal-dialog modal-dialog-centered">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title align-self-center">{{ report.user.username }}
+        - {{ report.date|date:'d.m.y H:i' }}</h5>
+    </div>
+    <div class="modal-body">
+      <div id="report-entries-list-{{ report.pk }}">
+        <table class="table bg-white">
+          <thead>
+          <tr>
+            <th class="text-center" scope="col">Станок</th>
+            <th class="text-center" scope="col">Деталь</th>
+            <th class="text-center" scope="col">Количество</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for report_entry in report.reportentry_set.all %}
+            <tr>
+              <td class="text-center">
+                {{ report_entry.machine }}
+              </td>
+              <td class="text-center">
+                {{ report_entry.detail }}
+              </td>
+              <td class="text-center">
+                {{ report_entry.quantity }}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a class="btn btn-success" type="button" href="{% url 'reports_edit' report.pk %}">Редактировать отчет</a>
+      <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Закрыть</button>
+    </div>
+  </div>
+</div>

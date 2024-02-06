@@ -1,18 +1,18 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-    <div class="row justify-content-center">
-    <div class="col-6">
-        <div class="d-grid gap-3">
-            <a class="btn btn-success"
-               type="button"
-               href="{% url 'machines_add' %}">
-                Создать станок
-            </a>
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6 align-content-center">
+      <div class="d-grid gap-3">
+        <a class="btn btn-success"
+           type="button"
+           href="{% url 'machines_add' %}">
+          Создать станок
+        </a>
 
-            {% include 'core/partials/machines_list.html' %}
-        </div>
+        {% include 'core/partials/machines_list.html' %}
+      </div>
     </div>
-    </div>
+  </div>
 
 {% endblock %}

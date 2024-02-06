@@ -72,7 +72,7 @@ class Order(models.Model):
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     number = models.PositiveIntegerField(default=0)
-    date = models.DateTimeField(default=now)
+    date = models.DateTimeField()
 
     def __str__(self):
         return str(self.number)
@@ -87,7 +87,7 @@ class OrderEntry(models.Model):
 class Report(models.Model):
     # date time ...
     user = models.ForeignKey(User, null=True, blank=False, on_delete=models.CASCADE)
-    date = models.DateTimeField(default=now)
+    date = models.DateTimeField()
     order = models.ForeignKey(Order, null=True, blank=False, on_delete=models.CASCADE)
 
     def __str__(self):

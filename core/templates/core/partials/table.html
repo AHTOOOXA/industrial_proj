@@ -1,51 +1,35 @@
 <table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Смена</th>
-            {% for machine in machines %}
-                <th scope="col">{{ machine.name }}</th>
+  <thead>
+  <tr>
+    <th></th>
+    {% for machine in machines %}
+      <th scope="col">{{ machine.name }}</th>
+    {% endfor %}
+  </tr>
+  </thead>
+  <tbody>
+  {% for row in table %}
+    <tr>
+      {% for cell in row %}
+        <td class="{{ cell.class }}">
+          {% if cell.text %}
+            {{ cell.text }}
+          {% else %}
+            {% for obj in cell.objs %}
+              <div class="text-center"
+                   hx-trigger="click"
+                   hx-get={% url 'report_modal' %}
+                           hx-target="#modals-here"
+                   hx-vals='{"pk": {{ obj.pk }}}'
+                   data-bs-toggle="modal"
+                   data-bs-target="#modals-here">
+                {{ obj.detail }}<br>{{ obj.quantity }}
+              </div>
             {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in table %}
-            <tr>
-                {% for element in row %}
-                    <td class={{ element.class }}><pre>{{ element.text }}</pre></td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </tbody>
+          {% endif %}
+        </td>
+      {% endfor %}
+    </tr>
+  {% endfor %}
+  </tbody>
 </table>
-
-
-{#<table class="table">#}
-{#    <thead>#}
-{#    <tr>#}
-{#        <th scope="col">#</th>#}
-{#        <th scope="col">First</th>#}
-{#        <th scope="col">Last</th>#}
-{#        <th scope="col">Handle</th>#}
-{#    </tr>#}
-{#    </thead>#}
-{#    <tbody>#}
-{#    <tr>#}
-{#        <th scope="row">1</th>#}
-{#        <td>Mark</td>#}
-{#        <td>Otto</td>#}
-{#        <td>@mdo</td>#}
-{#    </tr>#}
-{#    <tr>#}
-{#        <th scope="row">2</th>#}
-{#        <td>Jacob</td>#}
-{#        <td>Thornton</td>#}
-{#        <td>@fat</td>#}
-{#    </tr>#}
-{#    <tr>#}
-{#        <th scope="row">3</th>#}
-{#        <td>Larry</td>#}
-{#        <td>the Bird</td>#}
-{#        <td>@twitter</td>#}
-{#    </tr>#}
-{#    </tbody>#}
-{#</table>#}

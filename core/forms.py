@@ -1,5 +1,9 @@
+from datetime import datetime
+from django.utils.timezone import now
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.forms import DateInput
 from django.forms.models import inlineformset_factory
 
 from core.models import User, ReportEntry, Report, OrderEntry, Order, Detail, Machine
@@ -52,8 +56,12 @@ class ReportForm(forms.ModelForm):
             'order': 'Заказ'
         }
         widgets = {
-            'date': forms.DateTimeInput(attrs={'type': 'datetime'})
+            # 'date': forms.DateTimeInput(attrs={'type': 'datetime'}),
+            'date': forms.DateTimeInput(attrs={'type': 'datetime-local',
+                                               # 'value': datetime.now().strftime("%Y-%m-%dT%H:%M")
+                                               })
         }
+
 
 
 class ReportEntryForm(forms.ModelForm):
@@ -70,7 +78,7 @@ class ReportEntryForm(forms.ModelForm):
                 Field('detail', wrapper_class='form-group col mb-0'),
                 Field('quantity', wrapper_class='form-group col mb-0'),
                 Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
-                Button('cancel', 'Cancel', css_class='form-group col-1 btn btn-danger mb-3',
+                Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
                        onclick="handleCancelClick(this)",
                        ),
             )
@@ -106,10 +114,16 @@ class OrderForm(forms.ModelForm):
 
     class Meta:
         model = Order
-        fields = ['name', 'date']
+        fields = ['name', 'number', 'date']
         labels = {
             'name': 'Название',
+            'number': 'Заказ №',
             'date': 'Дата',
+        }
+        widgets = {
+            'date': forms.DateTimeInput(attrs={'type': 'datetime-local',
+                                               # 'value': datetime.now().strftime("%Y-%m-%dT%H:%M")
+                                               })
         }
 
 
@@ -126,7 +140,7 @@ class OrderEntryForm(forms.ModelForm):
                 Field('detail', wrapper_class='form-group col mb-0'),
                 Field('quantity', wrapper_class='form-group col mb-0'),
                 Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
-                Button('cancel', 'Cancel', css_class='form-group col-1 btn btn-danger mb-3',
+                Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
                        onclick="handleCancelClick(this)",
                        ),
             )

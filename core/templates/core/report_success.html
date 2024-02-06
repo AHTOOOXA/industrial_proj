@@ -1,0 +1,51 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6 align-content-center">
+      <div class="d-grid gap-3">
+        <h1 class="d-flex justify-content-center">Отчет успешно отравлен</h1>
+
+        <div id="reports-list">
+          <div class="card mb-3">
+            <div class="card-header">
+              <div class="row">
+                <h5 class="col-auto me-auto align-self-center">{{ report.user.username }}
+                  - {{ report.date|date:'d.m.y H:i' }}</h5>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="report-entries-list-{{ report.pk }}">
+                <table class="table bg-white">
+                  <thead>
+                  <tr>
+                    <th class="text-center" scope="col">Станок</th>
+                    <th class="text-center" scope="col">Деталь</th>
+                    <th class="text-center" scope="col">Количество</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for report_entry in report.reportentry_set.all %}
+                    <tr>
+                      <td class="text-center">
+                        {{ report_entry.machine }}
+                      </td>
+                      <td class="text-center">
+                        {{ report_entry.detail }}
+                      </td>
+                      <td class="text-center">
+                        {{ report_entry.quantity }}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <a class="btn btn-primary" href={% url 'login_user' %}>Войти в систему</a></div>
+    </div>
+  </div>
+
+{% endblock %}

@@ -1,20 +1,20 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-    <div class="row justify-content-center">
-    <div class="col-6">
-        <div class="d-grid gap-3">
-{#            <h1 class="d-flex justify-content-center">Отчеты</h1>#}
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+      <div class="d-grid gap-3">
+        {#            <h1 class="d-flex justify-content-center">Отчеты</h1>#}
 
-            <a class="btn btn-success"
-               type="button"
-               href="{% url 'reports_add' %}">
-                Создать отчет
-            </a>
+        <a class="btn btn-success"
+           type="button"
+           href="{% url 'reports_add' %}">
+          Создать отчет
+        </a>
 
-            {% include 'core/partials/reports_list.html' %}
-        </div>
+        {% include 'core/partials/reports_list.html' %}
+      </div>
     </div>
-    </div>
+  </div>
 
 {% endblock %}

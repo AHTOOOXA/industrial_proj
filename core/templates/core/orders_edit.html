@@ -2,14 +2,16 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-    <h1>Редактировать заказ</h1>
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6 align-content-center">
+      <h1 class="text-center">Редактировать заказ</h1>
 
-    <form method="POST" enctype="multipart/form-data" id="report-form">
+      <form method="POST" enctype="multipart/form-data" id="report-form">
         {% csrf_token %}
         {% crispy form %}
         {{ formset.management_form }}
         {% for entry_form in formset %}
-            {% crispy entry_form %}
+          {% crispy entry_form %}
         {% endfor %}
 
         <button hx-get="{% url 'add_order_entry_form' %}"
@@ -20,20 +22,22 @@
                 class="btn btn-success me-2">Добавить еще
         </button>
         <button type="submit" class="btn btn-primary me-2">Подтвердить</button>
-    </form>
+      </form>
+    </div>
+  </div>
 {% endblock %}
 
 {% block scripts %}
 
-{#    <script>#}
-{#        $(".select").select2({#}
-{#            theme: "bootstrap-5",#}
-{#        })#}
-{#    </script>#}
-    <script>
-        function handleCancelClick(button) {
-            button.parentNode.querySelector('input[type=checkbox]').checked = true;
-            button.parentNode.style.display = "none";
-        }
-    </script> 
+  {#    <script>#}
+  {#        $(".select").select2({#}
+  {#            theme: "bootstrap-5",#}
+  {#        })#}
+  {#    </script>#}
+  <script>
+      function handleCancelClick(button) {
+          button.parentNode.querySelector('input[type=checkbox]').checked = true;
+          button.parentNode.style.display = "none";
+      }
+  </script>
 {% endblock %}

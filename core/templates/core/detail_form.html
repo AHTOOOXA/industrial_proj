@@ -2,9 +2,11 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-  
-  <h1>Деталь</h1>
-  
-  {% crispy form %}
-  
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6 align-content-center">
+      <h1 class="text-center">Деталь</h1>
+
+      {% crispy form %}
+    </div>
+  </div>
 {% endblock %}

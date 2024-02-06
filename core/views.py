@@ -65,7 +65,7 @@ def shift_table(request, value):
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def orders_add(request):
     if request.method == "GET":
-        form = OrderForm()
+        form = OrderForm(initial={'date': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
         formset = OrderEntryFormset()
         context = {
             'form': form,
@@ -90,7 +90,7 @@ def orders_add(request):
 def orders_edit(request, pk):
     order = Order.objects.get(pk=pk)
     if request.method == 'GET':
-        form = OrderForm(instance=order)
+        form = OrderForm(instance=order, initial={'date': order.date.strftime("%Y-%m-%dT%H:%M")})
         formset = OrderEntryFormset(instance=order)
         context = {
             'order': order,
@@ -158,30 +158,34 @@ def order_entries_delete(request, r_pk, re_pk):
 
 @unauthenticated_user
 def login_user(request):
+    if request.method == 'GET':
+        return render(request, 'core/login.html', {})
     if request.method == "POST":
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('home')
+            if user.role == 'WORKER':
+                return redirect('report_form')
+            else:
+                return redirect('stats')
         else:
-            messages.error(request, ("There Was An Error Logging In, Try Again..."))
+            messages.error(request, "Ошибка при входе, попробуйте еще раз")
             return redirect('login_user')
-    else:
-        return render(request, 'core/login.html', {})
 
 
 def logout_user(request):
     logout(request)
-    messages.success(request, ("You Were Logged Out!"))
+    messages.success(request, ("Вы вышли из системы"))
     return redirect('home')
 
 
 @login_required(login_url='login_user')
 def report_form(request):
     if request.method == "GET":
-        form = ReportForm(initial={'user': request.user, 'date': now()})
+        # form = ReportForm(initial={'user': request.user, 'date': now()})
+        form = ReportForm(initial={'user': request.user, 'date': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
         form.fields['user'].disabled = True
         form.fields['date'].disabled = True
         formset = ReportEntryFormset()
@@ -205,7 +209,9 @@ def report_form(request):
                 for entry_form in entry_formset:
                     if entry_form.cleaned_data['DELETE'] is not True:
                         entry_form.save()
-            messages.success(request, 'Отчет успешно отправлен!')
+                messages.success(request, 'Отчет успешно отправлен!')
+            logout(request)
+            return redirect('report_success', pk=report_instance.pk)
         return redirect('report_form')
 
 
@@ -223,6 +229,14 @@ def add_report_entry_form(request):
         return render(request, 'core/partials/report_entry_form.html', context)
 
 
+def report_success(request, pk):
+    report = Report.objects.get(pk=pk)
+    context = {
+        'report': report,
+    }
+    return render(request, 'core/report_success.html', context)
+
+
 @login_required(login_url='login_user')
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def reports_view(request):
@@ -237,7 +251,7 @@ def reports_view(request):
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def reports_add(request):
     if request.method == "GET":
-        form = ReportForm()
+        form = ReportForm(initial={'date': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
         formset = ReportEntryFormset()
         context = {
             'form': form,
@@ -255,6 +269,7 @@ def reports_add(request):
                 for entry_form in entry_formset:
                     if entry_form.cleaned_data['DELETE'] is not True:
                         entry_form.save()
+                messages.success(request, 'Отчет успешно отправлен!')
         return redirect('reports_view')
 
 
@@ -263,7 +278,7 @@ def reports_add(request):
 def reports_edit(request, pk):
     report = Report.objects.get(pk=pk)
     if request.method == 'GET':
-        form = ReportForm(instance=report)
+        form = ReportForm(instance=report, initial={'date': report.date.strftime("%Y-%m-%dT%H:%M")})
         # formset = ReportEntryFormset(queryset=report.reportentry_set.all())
         formset = ReportEntryFormset(instance=report)
         context = {
@@ -291,6 +306,7 @@ def reports_edit(request, pk):
                         if entry_form.cleaned_data['id'] is not None:
                             entry_form.cleaned_data['id'].delete()
                             # entry = ReportEntry.objects.get(entry_form.cleaned_data['id']).delete()
+                messages.success(request, 'Отчет успешно изменен!')
         return redirect('reports_view')
 
 
@@ -476,30 +492,13 @@ def users_delete(request, pk):
 
 
 def test(request):
-    table = []
-    timestamps = [datetime.date.today() - datetime.timedelta(days=1) + datetime.timedelta(days=i) for i in range(0, 6)]
+    return render(request, 'test.html')
 
-    machines = Machine.objects.all()
-    for i in range(len(timestamps) - 1):
-        row_objs = ReportEntry.objects.filter(
-            report__date__range=(timestamps[i], timestamps[i + 1]))
-        row = [timestamps[i]]
-        for machine in machines:
-            obj = row_objs.filter(machine=machine)
-            if obj:
-                # row.append(obj)
-                row.append(str(obj[0].detail) + ':\n' + str(obj[0].quantity))
-            else:
-                row.append('empty')
-        table.append(row)
 
-    # my_table = MyTable(table)
-
-    # # Use RequestConfig to configure the table
-    # RequestConfig(request).configure(my_table)
-    #
-    # return render(request, 'test.html', context={'my_table': my_table})
-
-    s = '\n'.join(['    '.join(str(row)) for row in table])
-    print(s)
-    return render(request, 'test.html', context={'table': table, 'machines': machines})
+def report_modal(request):
+    pk = int(str(request.GET.get("pk")))
+    report = ReportEntry.objects.get(pk=pk).report
+    context = {
+        'report': report
+    }
+    return render(request, 'core/partials/report_modal.html', context)

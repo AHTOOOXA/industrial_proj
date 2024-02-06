@@ -2,9 +2,11 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6 align-content-center">
+      <h1 class="text-center">Зарегистрировать сотрудника</h1>
 
-  <h1>Зарегистрировать сотрудника</h1>
-
-  {% crispy form %}
-
+      {% crispy form %}
+    </div>
+  </div>
 {% endblock %}
