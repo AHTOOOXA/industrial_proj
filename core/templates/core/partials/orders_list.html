@@ -1,4 +1,13 @@
-<div id="orders-list">
+{% block extra_head %}
+  <style>
+      .scrollable {
+          height: calc(100vh - 120px);
+          overflow-y: scroll;
+      }
+  </style>
+{% endblock %}
+
+<div class="scrollable" id="orders-list">
   {% for order in orders %}
     <div class="card mb-1">
       <div class="card-header">

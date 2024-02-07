@@ -1,35 +1,53 @@
-<table class="table table-bordered">
-  <thead>
-  <tr>
-    <th></th>
-    {% for machine in machines %}
-      <th scope="col">{{ machine.name }}</th>
-    {% endfor %}
-  </tr>
-  </thead>
-  <tbody>
-  {% for row in table %}
+{% block extra_head %}
+  <style>
+    .tableFixHead {
+        overflow: auto;
+        height: calc(100vh - 120px);
+    }
+
+    .tableFixHead thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: darkslategray;
+        color: white;
+    }
+  </style>
+{% endblock %}
+<div class="tableFixHead">
+  <table class="table table-bordered">
+    <thead>
     <tr>
-      {% for cell in row %}
-        <td class="{{ cell.class }}">
-          {% if cell.text %}
-            {{ cell.text }}
-          {% else %}
-            {% for obj in cell.objs %}
-              <div class="text-center"
-                   hx-trigger="click"
-                   hx-get={% url 'report_modal' %}
-                           hx-target="#modals-here"
-                   hx-vals='{"pk": {{ obj.pk }}}'
-                   data-bs-toggle="modal"
-                   data-bs-target="#modals-here">
-                {{ obj.detail }}<br>{{ obj.quantity }}
-              </div>
-            {% endfor %}
-          {% endif %}
-        </td>
+      <th></th>
+      {% for machine in machines %}
+        <th scope="col">{{ machine.name }}</th>
       {% endfor %}
     </tr>
-  {% endfor %}
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+    {% for row in table %}
+      <tr>
+        {% for cell in row %}
+          <td class="{{ cell.class }}">
+            {% if cell.text %}
+              {{ cell.text }}
+            {% else %}
+              {% for obj in cell.objs %}
+                <div class="text-center"
+                     hx-trigger="click"
+                     hx-get={% url 'report_modal' %}
+                             hx-target="#modals-here"
+                     hx-vals='{"pk": {{ obj.pk }}}'
+                     data-bs-toggle="modal"
+                     data-bs-target="#modals-here">
+                  {{ obj.detail }}<br>{{ obj.quantity }}
+                </div>
+              {% endfor %}
+            {% endif %}
+          </td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>

@@ -1,7 +1,20 @@
 {% extends 'core/base.html' %}
 
-{% block content %}
+{% block extra_head %}
+  <style>
+      /*Remove the scrollbar from Chrome, Safari, Edge and IE*/
+      ::-webkit-scrollbar {
+          width: 0px;
+          background: transparent;
+      }
 
+      * {
+          -ms-overflow-style: none !important;
+      }
+  </style>
+{% endblock %}
+
+{% block content %}
   <div id="modals-here"
        class="modal modal-blur fade"
        style="display: none"
@@ -11,17 +24,15 @@
       <div class="modal-content"></div>
     </div>
   </div>
-
   <div class="row">
     <div class="col-4">
+        <a class="btn btn-success w-100 mb-3"
+           type="button"
+           href="{% url 'orders_add' %}">
+          Создать заказ
+        </a>
 
-      <a class="btn btn-success w-100 mb-3"
-         type="button"
-         href="{% url 'orders_add' %}">
-        Создать заказ
-      </a>
-
-      {% include 'core/partials/orders_list.html' %}
+        {% include 'core/partials/orders_list.html' %}
     </div>
     <div class="col-8">
       <div class="row justify-content-center mb-3">
@@ -38,9 +49,9 @@
         <a type="button" class="col-md-auto btn btn-success"
            href={% url "reports_add" %}>Создать отчет</a>
       </div>
-
-
-      {% include 'core/partials/table.html' %}
+      <div class="row">
+        {% include 'core/partials/table.html' %}
+      </div>
     </div>
   </div>
 
