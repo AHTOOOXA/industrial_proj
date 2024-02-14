@@ -12,7 +12,7 @@
     <div class="card mb-1">
       <div class="card-header">
         <div class="row">
-          <h5 class="col-auto me-auto align-self-center">{{ order.name }} - {{ order.date|date:'d.m.y H:i' }}</h5>
+          <h6 class="col-auto me-auto align-self-center">{{ order.name }} <b>#{{ order.number }}</b> - {{ order.date|date:'d.m.y H:i' }}</h6>
           <div class="col-auto ms-auto">
             <div class="btn-group">
               <a class="btn btn-secondary" type="button" href="{% url 'orders_edit' order.pk %}">И</a>

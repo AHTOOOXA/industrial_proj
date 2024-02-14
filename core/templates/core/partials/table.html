@@ -1,17 +1,39 @@
+{% load crispy_forms_tags %}
 {% block extra_head %}
   <style>
-    .tableFixHead {
-        overflow: auto;
-        height: calc(100vh - 120px);
-    }
+      .tableFixHead {
+          overflow: auto;
+          height: calc(100vh - 120px);
+      }
 
-    .tableFixHead thead th {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        background-color: darkslategray;
-        color: white;
-    }
+      .tableFixHead thead th {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background-color: darkslategray;
+          color: white;
+      }
+
+      td.done {
+          background-color: lightgray;
+      {#font-size: 20px;#}{#font-weight: bold;#}
+      }
+
+      {#td.plan {#}
+      {#  padding: 0;#}
+      {#}#}
+
+      {#td.plan form div {#}
+      {#    margin-bottom: 0 !important;#}
+      {##}
+      {#    width: auto;#}
+      {#}#}
+      {##}
+      {#td.plan select {#}
+      {#    background-image: none;#}
+      {#    width: auto;#}
+      {#font-size: 16px;#}
+      {#}#}
   </style>
 {% endblock %}
 <div class="tableFixHead">
@@ -31,12 +53,38 @@
           <td class="{{ cell.class }}">
             {% if cell.text %}
               {{ cell.text }}
+            {% elif cell.plan %}
+              <div class="text-center"
+                   hx-trigger="click"
+                   hx-get='{% url 'plan_modal' %}'
+                   hx-target="#modals-here"
+                   hx-vals='{"pk": {{ cell.plan.pk }}}'
+                   data-bs-toggle="modal"
+                   data-bs-target="#modals-here">
+                {% for plan_entry in cell.plan.planentry_set.all %}
+{#                  <div class="text-center">#}
+                    {{ plan_entry.detail }}<br>{{ plan_entry.quantity }}
+{#                  </div>#}
+                {% endfor %}
+              </div>
+            {% elif cell.plans %}
+              {% for plan in cell.plans %}
+                <div class="text-center"
+                     hx-trigger="click"
+                     hx-get='{% url 'plan_modal' %}'
+                     hx-target="#modals-here"
+                     hx-vals='{"pk": {{ plan.pk }}}'
+                     data-bs-toggle="modal"
+                     data-bs-target="#modals-here">
+                  {{ plan.detail }}<br>{{ plan.quantity }}
+                </div>
+              {% endfor %}
             {% else %}
               {% for obj in cell.objs %}
                 <div class="text-center"
                      hx-trigger="click"
-                     hx-get={% url 'report_modal' %}
-                             hx-target="#modals-here"
+                     hx-get='{% url 'report_modal' %}'
+                     hx-target="#modals-here"
                      hx-vals='{"pk": {{ obj.pk }}}'
                      data-bs-toggle="modal"
                      data-bs-target="#modals-here">

@@ -1,7 +1,10 @@
 import datetime
-from .models import Report, Machine, Detail, ReportEntry, Table
+
+from .forms import PlanForm
+from .models import Report, Machine, Detail, ReportEntry, Table, Plan
 
 
+# COMPLETE REFACTOR NEEDED
 def get_shifts_table(
         from_date=datetime.datetime.today().replace(hour=0, minute=0, second=0) - datetime.timedelta(days=2),
         shifts_count=24):
@@ -16,7 +19,8 @@ def get_shifts_table(
             report__date__range=(timestamps[i], timestamps[i + 1]))
         row = [{
             'class': '',
-            'text': str(timestamps[i].day) + ('-Д' if timestamps[i].hour < 12 else '-Н')
+            # 'text': str(timestamps[i].day) + ('-Д' if timestamps[i].hour < 12 else '-Н')
+            'text': str(timestamps[i].strftime('%d.%m')) + (' день' if timestamps[i].hour < 12 else ' ночь')
             # 'text': str(timestamps[i + 1].day) + ('У' if timestamps[i + 1].hour < 12 else 'Н'),
         }]
         for machine in machines:
@@ -32,7 +36,23 @@ def get_shifts_table(
                     cell['objs'].append(d)
                 row.append(cell)
             else:
-                cell = {'class': ''}
+                plan, created = Plan.objects.get_or_create(
+                    machine=machine,
+                    date=timestamps[i],
+                )
+                plans = plan.planentry_set.all()
+                cell = {
+                    'class': 'plan',
+                    'plan': plan,
+                }
+                # cell = {
+                #     'class': 'plan',
+                #     'plans': plans,
+                # }
+                # cell = {'class': 'plan',
+                #         'attrs': """
+                #
+                #         """}
                 row.append(cell)
         table.append(row)
     return table

@@ -1,0 +1,8 @@
+<div class="text-center"
+     hx-trigger="click"
+     hx-get='{% url 'plan_cell_form' %}'
+     hx-target="this"
+     hx-swap="outerHTML"
+     hx-vals='{"pk": {{ plan.pk }}}'>
+  {{ plan.detail }}<br>{{ plan.quantity }}
+</div>

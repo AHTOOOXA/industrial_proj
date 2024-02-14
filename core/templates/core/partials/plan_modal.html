@@ -1,0 +1,36 @@
+<div class="modal-dialog modal-dialog-centered">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title align-self-center">
+        План {{ plan.date|date:'d.m.y H:i' }}</h5>
+    </div>
+    <div class="modal-body">
+      <div id="plan-entries-list-{{ plan.pk }}">
+        <table class="table bg-white">
+          <thead>
+          <tr>
+            <th class="text-center" scope="col">Деталь</th>
+            <th class="text-center" scope="col">Количество</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for plan_entry in plan.planentry_set.all %}
+            <tr>
+              <td class="text-center">
+                {{ plan_entry.detail }}
+              </td>
+              <td class="text-center">
+                {{ plan_entry.quantity }}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a class="btn btn-success" type="button" href="{% url 'plans_edit' plan.pk %}">Редактировать план</a>
+      <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Закрыть</button>
+    </div>
+  </div>
+</div>

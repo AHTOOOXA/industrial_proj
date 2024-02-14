@@ -1,0 +1,10 @@
+{% load crispy_forms_tags %}
+
+<div id="plan-entry-form-wrapper">
+{% crispy new_form %}
+
+<input type="hidden"
+       name="planentry_set-TOTAL_FORMS"
+       value="{{ new_total_forms_count }}"
+       id="id_planentry_set-TOTAL_FORMS"
+       hx-swap-oob="true">

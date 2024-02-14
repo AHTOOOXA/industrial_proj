@@ -14,9 +14,9 @@ from django.utils.timezone import now
 from django.views.generic import ListView
 from django_tables2 import SingleTableView, RequestConfig
 
-from .models import ReportEntry, Report, OrderEntry, Order, Machine, Table, Detail, User
+from .models import ReportEntry, Report, OrderEntry, Order, Machine, Table, Detail, User, Plan, PlanEntry
 from core.forms import UserCreateForm, UserCreateAdminForm, ReportForm, ReportEntryForm, ReportEntryFormset, OrderForm, \
-    OrderEntryForm, OrderEntryFormset, DetailForm, MachineForm
+    OrderEntryForm, OrderEntryFormset, DetailForm, MachineForm, PlanForm, PlanEntryFormset
 from .decorators import allowed_user_roles, unauthenticated_user
 from .scripts import get_shifts_table
 
@@ -491,10 +491,6 @@ def users_delete(request, pk):
     return render(request, 'core/partials/users_list.html', context)
 
 
-def test(request):
-    return render(request, 'test.html')
-
-
 def report_modal(request):
     pk = int(str(request.GET.get("pk")))
     report = ReportEntry.objects.get(pk=pk).report
@@ -502,3 +498,152 @@ def report_modal(request):
         'report': report
     }
     return render(request, 'core/partials/report_modal.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def plans_add(request):
+    # probably not needed
+    if request.method == "GET":
+        form = OrderForm(initial={'date': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
+        formset = OrderEntryFormset()
+        context = {
+            'form': form,
+            'formset': formset,
+        }
+        return render(request, 'core/order_add.html', context)
+    if request.method == "POST":
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            report_instance = form.save(commit=False)
+            report_instance.save()
+
+            entry_formset = OrderEntryFormset(request.POST, request.FILES, instance=report_instance)
+            if entry_formset.is_valid():
+                for entry_form in entry_formset:
+                    entry_form.save()
+        return redirect('stats')
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def plans_edit(request, pk):
+    plan = Plan.objects.get(pk=pk)
+    if request.method == 'GET':
+        form = PlanForm(instance=plan)
+        formset = PlanEntryFormset(instance=plan)
+        context = {
+            'plan': plan,
+            'form': form,
+            'formset': formset,
+        }
+        return render(request, 'core/plans_edit.html', context)
+    if request.method == 'POST':
+        form = PlanForm(request.POST, instance=plan)
+        if form.is_valid():
+            plan_instance = form.save(commit=False)
+            plan_instance.save()
+
+            entry_formset = PlanEntryFormset(request.POST, request.FILES, instance=plan_instance)
+            print(entry_formset.is_valid())
+            print(entry_formset.errors)
+            if entry_formset.is_valid():
+                for entry_form in entry_formset:
+                    if entry_form.cleaned_data['DELETE'] is not True:
+                        entry_form.save()
+                    else:
+                        print(entry_form.cleaned_data)
+                        if entry_form.cleaned_data['id'] is not None:
+                            entry_form.cleaned_data['id'].delete()
+        return redirect('stats')
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def add_plan_entry_form(request):
+    if request.method == 'GET':
+        new_formset = PlanEntryFormset()
+        form_number = int(request.GET.get("totalForms"))
+        new_form = new_formset.empty_form
+        new_form.prefix = new_form.prefix.replace("__prefix__", str(form_number))
+        context = {
+            'new_form': new_form,
+            'new_total_forms_count': form_number + 1,
+        }
+        return render(request, 'core/partials/plan_entry_form.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def plans_delete(request, pk):
+    # NOT NEEDED
+    Order.objects.get(pk=pk).delete()
+    orders = Order.objects.all().order_by('-id')
+    context = {
+        'orders': orders,
+    }
+    return render(request, 'core/partials/orders_list.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def plan_entries_delete(request, r_pk, re_pk):
+    OrderEntry.objects.get(pk=re_pk).delete()
+    order = Order.objects.get(pk=r_pk)
+    context = {
+        'order': order,
+    }
+    return render(request, 'core/partials/order_entries_list.html', context)
+
+
+def plan_modal(request):
+    pk = int(str(request.GET.get("pk")))
+    plan = Plan.objects.get(pk=pk)
+    context = {
+        'plan': plan
+    }
+    return render(request, 'core/partials/plan_modal.html', context)
+
+
+def test(request):
+    print(request)
+    form = PlanForm(initial={
+        'date': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M"),
+        'machine': Machine.objects.get(name='Турок')
+    })
+    context = {
+        "form": form,
+    }
+    return render(request, 'test.html', context=context)
+
+
+def test_save(request):
+    plan, created = Plan.objects.get_or_create(machine_id=int(request.POST.get('machine')),
+                                               date=request.POST.get('date'),
+                                               )
+    form = PlanForm(request.POST, instance=plan)
+    if form.is_valid():
+        form.save()
+    return HttpResponse('saved')
+
+
+def plan_cell_form(request):
+    plan = Plan.objects.get(pk=request.GET.get('pk'))
+    form = PlanForm(instance=plan)
+    context = {
+        'form': form,
+    }
+    return render(request, 'core/partials/plan_cell_form.html', context=context)
+
+
+def plan_cell_save(request):
+    plan, created = Plan.objects.get_or_create(machine_id=int(request.POST.get('machine')),
+                                               date=request.POST.get('date'),
+                                               )
+    form = PlanForm(request.POST, instance=plan)
+    if form.is_valid():
+        form.save()
+    context = {
+        'plan': plan,
+    }
+    return render(request, 'core/partials/plan_cell.html', context=context)

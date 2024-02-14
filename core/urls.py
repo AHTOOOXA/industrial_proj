@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from . import views
 
 urlpatterns = [
@@ -12,13 +12,21 @@ urlpatterns = [
     path("reports/<int:pk>/delete", views.reports_delete, name='reports_delete'),
     # path("reports/entry_delete/<int:r_pk>/<int:re_pk>", views.report_entries_delete, name='report_entries_delete'),
     path("stats", views.stats, name='stats'),
+    path("htmx/plan_cell_form", views.plan_cell_form, name='plan_cell_form'),
+    path("htmx/plan_cell_save", views.plan_cell_save, name='plan_cell_save'),
     path("htmx/report_modal", views.report_modal, name='report_modal'),
+    path("htmx/plan_modal", views.plan_modal, name='plan_modal'),
     path("stats/shift_table/<slug:value>", views.shift_table, name='shift_table'),
     path("stats/orders/add", views.orders_add, name='orders_add'),
     path("stats/orders/<int:pk>/edit", views.orders_edit, name='orders_edit'),
     path("htmx/add_order_entry_form", views.add_order_entry_form, name='add_order_entry_form'),
     path("stats/orders/delete/<int:pk>", views.orders_delete, name='orders_delete'),
     path("stats/orders/entry_delete/<int:r_pk>/<int:re_pk>", views.order_entries_delete, name='order_entries_delete'),
+    path("stats/plans/add", views.plans_add, name='plans_add'),
+    path("stats/plans/<int:pk>/edit", views.plans_edit, name='plans_edit'),
+    path("htmx/add_plan_entry_form", views.add_plan_entry_form, name='add_plan_entry_form'),
+    path("stats/plans/delete/<int:pk>", views.plans_delete, name='plans_delete'),
+    path("stats/plans/entry_delete/<int:r_pk>/<int:re_pk>", views.plan_entries_delete, name='plan_entries_delete'),
     path("details", views.details_view, name='details_view'),
     path("details/add", views.details_add, name='details_add'),
     path("details/<int:pk>/edit", views.details_edit, name='details_edit'),
@@ -33,5 +41,6 @@ urlpatterns = [
     path("users/<int:pk>/delete", views.users_delete, name='users_delete'),
     path("login", views.login_user, name='login_user'),
     path("logout_user", views.logout_user, name='logout_user'),
-    path("test", views.test)
+    path("test", views.test),
+    path("test_save", views.test_save, name='test_save'),
 ]
