@@ -84,11 +84,19 @@ class OrderEntry(models.Model):
     quantity = models.PositiveIntegerField()
 
 
+class Step(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+
 class Report(models.Model):
     # date time ...
     user = models.ForeignKey(User, null=True, blank=False, on_delete=models.CASCADE)
     date = models.DateTimeField()
     order = models.ForeignKey(Order, null=True, blank=False, on_delete=models.CASCADE)
+    step = models.ForeignKey(Step, null= False, blank=False, on_delete=models.CASCADE)
 
     def __str__(self):
         return "ОТЧЕТ " + str(self.user) + ": " + str(self.date)
@@ -102,5 +110,17 @@ class ReportEntry(models.Model):
     quantity = models.PositiveIntegerField()
 
 
+class Plan(models.Model):
+    date = models.DateTimeField()
+    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
+
+
+class PlanEntry(models.Model):
+    plan = models.ForeignKey(Plan, on_delete=models.CASCADE)
+    detail = models.ForeignKey(Detail, null=True, blank=True, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(null=True, blank=True)
+
+
 class Table(models.Model):
     current_date = models.DateTimeField(default=now)
+    current_step = models.ForeignKey(Step, null=True, on_delete=models.SET_NULL)

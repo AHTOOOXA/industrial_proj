@@ -18,31 +18,24 @@
           background-color: lightgray;
       {#font-size: 20px;#}{#font-weight: bold;#}
       }
-
-      {#td.plan {#}
-      {#  padding: 0;#}
-      {#}#}
-
-      {#td.plan form div {#}
-      {#    margin-bottom: 0 !important;#}
-      {##}
-      {#    width: auto;#}
-      {#}#}
-      {##}
-      {#td.plan select {#}
-      {#    background-image: none;#}
-      {#    width: auto;#}
-      {#font-size: 16px;#}
-      {#}#}
   </style>
 {% endblock %}
-<div class="tableFixHead">
+<div id="stats-table" class="tableFixHead">
   <table class="table table-bordered">
     <thead>
     <tr>
-      <th></th>
+      <th class="text-center">
+        <a hx-get="{% url 'shift_table' value=-1 %}"
+           hx-swap="outerHTML"
+           hx-target="#stats-table"
+           class="btn-sm btn-dark"> < </a>
+        <a hx-get="{% url 'shift_table' value=1 %}"
+           hx-swap="outerHTML"
+           hx-target="#stats-table"
+           class="btn-sm btn-dark"> > </a>
+      </th>
       {% for machine in machines %}
-        <th scope="col">{{ machine.name }}</th>
+        <th class="text-center" scope="col">{{ machine.name }}</th>
       {% endfor %}
     </tr>
     </thead>
@@ -50,36 +43,28 @@
     {% for row in table %}
       <tr>
         {% for cell in row %}
-          <td class="{{ cell.class }}">
-            {% if cell.text %}
-              {{ cell.text }}
-            {% elif cell.plan %}
-              <div class="text-center"
-                   hx-trigger="click"
-                   hx-get='{% url 'plan_modal' %}'
-                   hx-target="#modals-here"
-                   hx-vals='{"pk": {{ cell.plan.pk }}}'
-                   data-bs-toggle="modal"
-                   data-bs-target="#modals-here">
-                {% for plan_entry in cell.plan.planentry_set.all %}
-{#                  <div class="text-center">#}
-                    {{ plan_entry.detail }}<br>{{ plan_entry.quantity }}
-{#                  </div>#}
-                {% endfor %}
+          {% if cell.text %}
+            <td>
+              <div>
+                {{ cell.text }}
               </div>
-            {% elif cell.plans %}
-              {% for plan in cell.plans %}
-                <div class="text-center"
-                     hx-trigger="click"
-                     hx-get='{% url 'plan_modal' %}'
-                     hx-target="#modals-here"
-                     hx-vals='{"pk": {{ plan.pk }}}'
-                     data-bs-toggle="modal"
-                     data-bs-target="#modals-here">
-                  {{ plan.detail }}<br>{{ plan.quantity }}
+            </td>
+          {% elif cell.plan %}
+            <td class="text-center"
+                hx-trigger="click"
+                hx-get='{% url 'plan_modal' %}'
+                hx-target="#modals-here"
+                hx-vals='{"pk": {{ cell.plan.pk }}}'
+                data-bs-toggle="modal"
+                data-bs-target="#modals-here">
+              {% for plan_entry in cell.plan.planentry_set.all %}
+                <div class="text-center">
+                  {{ plan_entry.detail }}<br>{{ plan_entry.quantity }}
                 </div>
               {% endfor %}
-            {% else %}
+            </td>
+          {% else %}
+            <td class="{{ cell.class }}">
               {% for obj in cell.objs %}
                 <div class="text-center"
                      hx-trigger="click"
@@ -91,8 +76,8 @@
                   {{ obj.detail }}<br>{{ obj.quantity }}
                 </div>
               {% endfor %}
-            {% endif %}
-          </td>
+            </td>
+          {% endif %}
         {% endfor %}
       </tr>
     {% endfor %}

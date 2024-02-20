@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core.models import User, Machine, Detail, Report, ReportEntry, Order, OrderEntry, Table
+from core.models import User, Machine, Detail, Report, ReportEntry, Order, OrderEntry, Table, Plan, Step
 
 
 # class ReportAdmin(admin.ModelAdmin):

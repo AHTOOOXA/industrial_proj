@@ -40,19 +40,10 @@ def get_shifts_table(
                     machine=machine,
                     date=timestamps[i],
                 )
-                plans = plan.planentry_set.all()
                 cell = {
                     'class': 'plan',
                     'plan': plan,
                 }
-                # cell = {
-                #     'class': 'plan',
-                #     'plans': plans,
-                # }
-                # cell = {'class': 'plan',
-                #         'attrs': """
-                #
-                #         """}
                 row.append(cell)
         table.append(row)
     return table

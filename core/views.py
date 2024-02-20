@@ -14,7 +14,7 @@ from django.utils.timezone import now
 from django.views.generic import ListView
 from django_tables2 import SingleTableView, RequestConfig
 
-from .models import ReportEntry, Report, OrderEntry, Order, Machine, Table, Detail, User, Plan, PlanEntry
+from .models import ReportEntry, Report, OrderEntry, Order, Machine, Table, Detail, User, Plan, PlanEntry, Step
 from core.forms import UserCreateForm, UserCreateAdminForm, ReportForm, ReportEntryForm, ReportEntryFormset, OrderForm, \
     OrderEntryForm, OrderEntryFormset, DetailForm, MachineForm, PlanForm, PlanEntryFormset
 from .decorators import allowed_user_roles, unauthenticated_user
