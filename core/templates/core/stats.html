@@ -26,32 +26,16 @@
   </div>
   <div class="row">
     <div class="col-4">
-        <a class="btn btn-success w-100 mb-3"
-           type="button"
-           href="{% url 'orders_add' %}">
-          Создать заказ
-        </a>
+      <a class="btn btn-success w-100 mb-3"
+         type="button"
+         href="{% url 'orders_add' %}">
+        Создать заказ
+      </a>
 
-        {% include 'core/partials/orders_list.html' %}
+      {% include 'core/partials/orders_list.html' %}
     </div>
-    <div class="col-8">
-      <div class="row justify-content-center mb-3">
-        <div class="col-md-auto btn-group">
-          <a hx-get="{% url 'shift_table' value=-1 %}"
-             hx-swap="outerHTML"
-             hx-target="next table"
-             class="btn btn-primary">< назад</a>
-          <a hx-get="{% url 'shift_table' value=1 %}"
-             hx-swap="outerHTML"
-             hx-target="next table"
-             class="btn btn-primary">вперед ></a>
-        </div>
-        <a type="button" class="col-md-auto btn btn-success"
-           href={% url "reports_add" %}>Создать отчет</a>
-      </div>
-      <div class="row">
-        {% include 'core/partials/table.html' %}
-      </div>
+    <div class="col-8" id="right-col">
+      {% include 'core/partials/right_col.html' %}
     </div>
   </div>
 

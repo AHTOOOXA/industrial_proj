@@ -9,14 +9,16 @@ def get_shifts_table(
         from_date=datetime.datetime.today().replace(hour=0, minute=0, second=0) - datetime.timedelta(days=2),
         shifts_count=24):
     from_date = Table.objects.all()[0].current_date
+    step = Table.objects.all()[0].current_step
     table = []
     timestamps = [
         from_date + datetime.timedelta(
             hours=12 * i) for i in range(0, shifts_count)]
-    machines = Machine.objects.all()
+    machines = Machine.objects.filter(step=step)
     for i in range(len(timestamps) - 1):
         row_objs = ReportEntry.objects.filter(
-            report__date__range=(timestamps[i], timestamps[i + 1]))
+            report__date__range=(timestamps[i], timestamps[i + 1]),
+            report__step=step)
         row = [{
             'class': '',
             # 'text': str(timestamps[i].day) + ('-Д' if timestamps[i].hour < 12 else '-Н')
@@ -39,6 +41,7 @@ def get_shifts_table(
                 plan, created = Plan.objects.get_or_create(
                     machine=machine,
                     date=timestamps[i],
+                    step=step,
                 )
                 cell = {
                     'class': 'plan',
@@ -46,4 +49,4 @@ def get_shifts_table(
                 }
                 row.append(cell)
         table.append(row)
-    return table
+    return step.pk, machines, table

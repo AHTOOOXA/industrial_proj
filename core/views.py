@@ -35,11 +35,12 @@ def stats(request):
         order_entries_leftovers[order_entry.id] = order_entry.quantity
         for report_entry in ReportEntry.objects.filter(report__order=order_entry.order):
             order_entries_leftovers[order_entry.id] -= report_entry.quantity
-    machines = Machine.objects.all()
-    table = get_shifts_table()
+    active_step_pk, machines, table = get_shifts_table()
     context = {
         'orders': orders,
         'order_entries_leftovers': order_entries_leftovers,
+        'steps': Step.objects.all(),
+        'active_step_pk': active_step_pk,
         'machines': machines,
         'table': table
     }
@@ -52,13 +53,28 @@ def shift_table(request, value):
     current_date = Table.objects.all()[0].current_date
     new_date = current_date + int(value) * datetime.timedelta(hours=12)
     Table.objects.all().update(current_date=new_date)
-    table = get_shifts_table(new_date)
-    machines = Machine.objects.all()
+
+    _, machines, table = get_shifts_table()
     context = {
         'machines': machines,
         'table': table
     }
     return render(request, 'core/partials/table.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
+def switch_step(request, step):
+    Table.objects.all().update(current_step=step)
+
+    active_step_pk, machines, table = get_shifts_table()
+    context = {
+        'steps': Step.objects.all(),
+        'active_step_pk': active_step_pk,
+        'machines': machines,
+        'table': table
+    }
+    return render(request, 'core/partials/right_col.html', context)
 
 
 @login_required(login_url='login_user')
@@ -231,7 +247,6 @@ def add_report_entry_form(request):
 
 @login_required(login_url='login_user')
 def detail_options(request):
-    print('order', request.GET.get('order'))
     entries = OrderEntry.objects.filter(order__pk=request.GET.get('order')).all()
     details = []
     for entry in entries:
@@ -243,6 +258,15 @@ def detail_options(request):
         'details': details,
     }
     return render(request, 'core/partials/detail_options.html', context)
+
+
+@login_required(login_url='login_user')
+def machine_options(request):
+    machines = Machine.objects.filter(step__pk=request.GET.get('step')).all()
+    context = {
+        'machines': machines,
+    }
+    return render(request, 'core/partials/machines_options.html', context)
 
 
 def report_success(request, pk):

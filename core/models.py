@@ -54,8 +54,16 @@ class Worker(User):
             self.groups.add(Group.objects.get(name='Workers'))
 
 
+class Step(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+
 class Machine(models.Model):
     name = models.CharField(max_length=200)
+    step = models.ForeignKey(Step, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
@@ -84,19 +92,12 @@ class OrderEntry(models.Model):
     quantity = models.PositiveIntegerField()
 
 
-class Step(models.Model):
-    name = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.name
-
-
 class Report(models.Model):
     # date time ...
     user = models.ForeignKey(User, null=True, blank=False, on_delete=models.CASCADE)
     date = models.DateTimeField()
     order = models.ForeignKey(Order, null=True, blank=False, on_delete=models.CASCADE)
-    step = models.ForeignKey(Step, null= False, blank=False, on_delete=models.CASCADE)
+    step = models.ForeignKey(Step, null=False, blank=False, on_delete=models.CASCADE)
 
     def __str__(self):
         return "ОТЧЕТ " + str(self.user) + ": " + str(self.date)
@@ -113,6 +114,10 @@ class ReportEntry(models.Model):
 class Plan(models.Model):
     date = models.DateTimeField()
     machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
+    step = models.ForeignKey(Step, null=False, blank=False, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.date) + ' ' + str(self.step) + ' ' + str(self.machine)
 
 
 class PlanEntry(models.Model):

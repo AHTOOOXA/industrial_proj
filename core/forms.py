@@ -85,7 +85,11 @@ class ReportEntryForm(forms.ModelForm):
         # )
         self.helper.layout = Layout(
             Row(
-                Field('machine', wrapper_class='form-group col mb-0'),
+                Field('machine', wrapper_class='form-group col mb-0',
+                      hx_get='/htmx/machine_options',
+                      hx_include="[name='step']",
+                      hx_trigger="change from:#id_step",
+                      ),
                 Field('detail', wrapper_class='form-group col mb-0',
                       hx_get='/htmx/detail_options',
                       hx_include="[name='order']",
@@ -204,9 +208,10 @@ class MachineForm(forms.ModelForm):
 
     class Meta:
         model = Machine
-        fields = ['name']
+        fields = ['name', 'step']
         labels = {
             'name': 'Название',
+            'step': 'Этап',
         }
 
 
