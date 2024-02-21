@@ -86,7 +86,11 @@ class ReportEntryForm(forms.ModelForm):
         self.helper.layout = Layout(
             Row(
                 Field('machine', wrapper_class='form-group col mb-0'),
-                Field('detail', wrapper_class='form-group col mb-0'),
+                Field('detail', wrapper_class='form-group col mb-0',
+                      hx_get='/htmx/detail_options',
+                      hx_include="[name='order']",
+                      hx_trigger="change from:#id_order",
+                      ),
                 Field('quantity', wrapper_class='form-group col mb-0'),
                 Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
                 Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',

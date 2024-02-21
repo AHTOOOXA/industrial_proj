@@ -229,6 +229,22 @@ def add_report_entry_form(request):
         return render(request, 'core/partials/report_entry_form.html', context)
 
 
+@login_required(login_url='login_user')
+def detail_options(request):
+    print('order', request.GET.get('order'))
+    entries = OrderEntry.objects.filter(order__pk=request.GET.get('order')).all()
+    details = []
+    for entry in entries:
+        details.append({
+            'id': entry.detail.id,
+            'name': entry.detail.name,
+        })
+    context = {
+        'details': details,
+    }
+    return render(request, 'core/partials/detail_options.html', context)
+
+
 def report_success(request, pk):
     report = Report.objects.get(pk=pk)
     context = {

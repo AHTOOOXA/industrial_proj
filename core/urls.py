@@ -5,6 +5,7 @@ urlpatterns = [
     path("", views.home, name='home'),
     path("report_form", views.report_form, name='report_form'),
     path("htmx/add_report_entry_form", views.add_report_entry_form, name='add_report_entry_form'),
+    path("htmx/detail_options", views.detail_options, name='detail_options'),
     path("report_success/<int:pk>", views.report_success, name='report_success'),
     path("reports", views.reports_view, name='reports_view'),
     path("reports/add", views.reports_add, name='reports_add'),
