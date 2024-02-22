@@ -1,7 +1,7 @@
 import datetime
 
 from .forms import PlanForm
-from .models import Report, Machine, Detail, ReportEntry, Table, Plan
+from .models import Report, Machine, Detail, ReportEntry, Table, Plan, Step, Order, OrderEntry
 
 
 # COMPLETE REFACTOR NEEDED
@@ -50,3 +50,17 @@ def get_shifts_table(
                 row.append(cell)
         table.append(row)
     return step.pk, machines, table
+
+
+def get_leftovers():
+    steps = Step.objects.all()
+    leftovers = {}
+    for step in steps:
+        leftovers[step.pk] = {}
+    for order_entry in OrderEntry.objects.all():
+        for step in steps:
+            leftovers[step.pk][order_entry.pk] = order_entry.quantity
+            for report_entry in ReportEntry.objects.filter(report__order=order_entry.order, report__step=step, detail=order_entry.detail):
+                print('hello', order_entry.detail, report_entry.detail, report_entry.quantity)
+                leftovers[step.id][order_entry.pk] -= report_entry.quantity
+    return leftovers

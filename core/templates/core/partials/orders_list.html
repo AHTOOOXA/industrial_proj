@@ -9,7 +9,7 @@
 
 <div class="scrollable" id="orders-list">
   {% for order in orders %}
-    <div class="card mb-1">
+    <div class="card mb-1" id="order-card">
       <div class="card-header">
         <div class="row">
           <h6 class="col-auto me-auto align-self-center">{{ order.name }} <b>#{{ order.number }}</b> - {{ order.date|date:'d.m.y H:i' }}</h6>
@@ -19,14 +19,15 @@
               <button class="btn btn-danger"
                       type="button"
                       hx-post="{% url 'orders_delete' order.pk %}"
-                      hx-target="#orders-list"
+                      hx-target="#order-card"
+                      hx-swap="outerHTML"
                       hx-trigger="click">Х
               </button>
             </div>
           </div>
         </div>
       </div>
-      <div class="card-body">
+      <div class="card-body" style="padding: 0">
         {% include 'core/partials/order_entries_list.html' %}
 
 

@@ -15,10 +15,10 @@ from django.views.generic import ListView
 from django_tables2 import SingleTableView, RequestConfig
 
 from .models import ReportEntry, Report, OrderEntry, Order, Machine, Table, Detail, User, Plan, PlanEntry, Step
-from core.forms import UserCreateForm, UserCreateAdminForm, ReportForm, ReportEntryForm, ReportEntryFormset, OrderForm, \
+from core.forms import UserCreateAdminForm, ReportForm, ReportEntryForm, ReportEntryFormset, OrderForm, \
     OrderEntryForm, OrderEntryFormset, DetailForm, MachineForm, PlanForm, PlanEntryFormset
 from .decorators import allowed_user_roles, unauthenticated_user
-from .scripts import get_shifts_table
+from .scripts import get_shifts_table, get_leftovers
 
 
 @login_required(login_url='login_user')
@@ -29,15 +29,19 @@ def home(request):
 @login_required(login_url='login_user')
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def stats(request):
+    leftovers = get_leftovers()
+
     orders = Order.objects.all().order_by('-id')
     order_entries_leftovers = {}
     for order_entry in OrderEntry.objects.all():
         order_entries_leftovers[order_entry.id] = order_entry.quantity
         for report_entry in ReportEntry.objects.filter(report__order=order_entry.order):
             order_entries_leftovers[order_entry.id] -= report_entry.quantity
+
     active_step_pk, machines, table = get_shifts_table()
     context = {
         'orders': orders,
+        'leftovers': leftovers,
         'order_entries_leftovers': order_entries_leftovers,
         'steps': Step.objects.all(),
         'active_step_pk': active_step_pk,
@@ -154,11 +158,12 @@ def add_order_entry_form(request):
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def orders_delete(request, pk):
     Order.objects.get(pk=pk).delete()
-    orders = Order.objects.all().order_by('-id')
-    context = {
-        'orders': orders,
-    }
-    return render(request, 'core/partials/orders_list.html', context)
+    # orders = Order.objects.all().order_by('-id')
+    # context = {
+    #     'orders': orders,
+    # }
+    # return render(request, 'core/partials/orders_list.html', context)
+    return HttpResponse('')
 
 
 @login_required(login_url='login_user')
@@ -498,6 +503,8 @@ def users_add(request):
         if form.is_valid():
             form.save()
             messages.success(request, f'Сотрудник успешно зарегистрирован')
+        else:
+            messages.error(request, f'Ошибка')
         return redirect('users_view')
 
 

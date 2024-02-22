@@ -1,37 +1,47 @@
 {% load template_filters %}
+<style>
+    .order-table-names {
+        background-color: lightgray;
+    }
+
+    .order-table-total {
+        background-color: lightgray;
+    }
+</style>
 <div id="order-entries-list-{{ order.pk }}">
-    <div class="table-responsive">
-        <table class="table bg-white">
-            <thead>
-            <tr>
-                <th class="text-center" scope="col">Деталь</th>
-                <th class="text-center" scope="col">Количество</th>
-                <th class="text-center" scope="col">Осталось</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for order_entry in order.orderentry_set.all %}
-                <tr>
-                    <td class="text-center">
-                        {{ order_entry.detail }}
-                    </td>
-                    <td class="text-center">
-                        {{ order_entry.quantity }}
-                    </td>
-                    <td class="text-center">
-                        {{ order_entries_leftovers|lookup:order_entry.id }}
-                    </td>
-{#                    <td class="justify-content-center" style="width: 5%">#}
-{#                        <button class="btn btn-danger btn-sm"#}
-{#                                type="button"#}
-{#                                hx-post="{% url 'order_entries_delete' order.pk order_entry.pk %}"#}
-{#                                hx-target="#order-entries-list-{{ order.pk }}"#}
-{#                                hx-trigger="click">X#}
-{#                        </button>#}
-{#                    </td>#}
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+  <div class="table-responsive">
+    <table class="table bg-white mb-0">
+      <colgroup>
+        <col class="order-table-names"/>
+        <col class="order-table-total"/>
+        <col/>
+      </colgroup>
+      <thead>
+      <tr>
+        <th class="text-center" scope="col">Деталь</th>
+        <th class="text-center" scope="col">Всего</th>
+        {% for step in steps %}
+          <th class="text-center" scope="col"> {{ step.name }} </th>
+        {% endfor %}
+      </tr>
+      </thead>
+      <tbody>
+      {% for order_entry in order.orderentry_set.all %}
+        <tr>
+          <td class="text-center">
+            {{ order_entry.detail }}
+          </td>
+          <td class="text-center">
+            {{ order_entry.quantity }}
+          </td>
+          {% for step in steps %}
+            <td class="text-center">
+              {{ leftovers|lookup:step.pk|lookup:order_entry.pk }}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
