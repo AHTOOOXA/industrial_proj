@@ -1,12 +1,6 @@
-from datetime import datetime
-from django.utils.timezone import now
-
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.forms import DateInput
 from django.forms.models import inlineformset_factory
-
-from django_select2 import forms as s2forms
 
 from core.models import User, ReportEntry, Report, OrderEntry, Order, Detail, Machine, Plan, PlanEntry
 from crispy_forms.helper import FormHelper
@@ -15,12 +9,6 @@ from crispy_forms.layout import Layout, Div, Field, Submit, Button
 
 class Row(Div):
     css_class = 'row g-3'
-
-
-class UserCreateForm(UserCreationForm):
-    class Meta:
-        model = User
-        fields = ['username', 'password1', 'password2']
 
 
 class UserCreateAdminForm(UserCreationForm):
