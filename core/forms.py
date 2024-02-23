@@ -4,7 +4,7 @@ from django.forms.models import inlineformset_factory
 
 from core.models import User, ReportEntry, Report, OrderEntry, Order, Detail, Machine, Plan, PlanEntry
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Field, Submit, Button
+from crispy_forms.layout import Layout, Div, Field, Submit, Button, HTML
 
 
 class Row(Div):
@@ -85,9 +85,20 @@ class ReportEntryForm(forms.ModelForm):
                       ),
                 Field('quantity', wrapper_class='form-group col mb-0'),
                 Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
-                Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
-                       onclick="handleCancelClick(this)",
-                       ),
+                # Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
+                #        onclick="handleCancelClick(this)",
+                #        ),
+                HTML(
+                    """
+                    <div class="mb-3 form-group col-1 mb-0 mt-4 me-1">
+                    <label class="form-label requiredField"> </label>
+                    <a class="btn btn-danger"
+                    type="button" onclick="handleCancelClick(this)">
+                    <i class="bi bi-trash-fill"></i>
+                    </a>
+                    </div>
+                    """
+                ),
             )
         )
 
@@ -147,9 +158,20 @@ class OrderEntryForm(forms.ModelForm):
                 Field('detail', wrapper_class='form-group col mb-0'),
                 Field('quantity', wrapper_class='form-group col mb-0'),
                 Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
-                Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
-                       onclick="handleCancelClick(this)",
-                       ),
+                # Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
+                #        onclick="handleCancelClick(this)",
+                #        ),
+                HTML(
+                    """
+                    <div class="mb-3 form-group col-1 mb-0 mt-4 me-1">
+                    <label class="form-label requiredField"> </label>
+                    <a class="btn btn-danger"
+                    type="button" onclick="handleCancelClick(this)">
+                    <i class="bi bi-trash-fill"></i>
+                    </a>
+                    </div>
+                    """
+                ),
             )
         )
 
@@ -258,9 +280,20 @@ class PlanEntryForm(forms.ModelForm):
                 Field('detail', wrapper_class='form-group col mb-0'),
                 Field('quantity', wrapper_class='form-group col mb-0'),
                 Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
-                Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
-                       onclick="handleCancelClick(this)",
-                       ),
+                # Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
+                #        onclick="handleCancelClick(this)",
+                #        ),
+                HTML(
+                    """
+                    <div class="mb-3 form-group col-1 mb-0 mt-4 me-3">
+                    <label class="form-label requiredField"> </label>
+                    <a class="btn btn-danger"
+                    type="button" onclick="handleCancelClick(this)">
+                    <i class="bi bi-trash-fill"></i>
+                    </a>
+                    </div>
+                    """
+                ),
             )
         )
 
