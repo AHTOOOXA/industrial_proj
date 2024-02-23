@@ -16,13 +16,16 @@
             - {{ order.date|date:'d.m.y H:i' }}</h6>
           <div class="col-auto ms-auto">
             <div class="btn-group">
-              <a class="btn btn-secondary" type="button" href="{% url 'orders_edit' order.pk %}">И</a>
+              <a class="btn btn-secondary" type="button" href="{% url 'orders_edit' order.pk %}">
+                <i class="bi bi-pencil-fill"></i>
+              </a>
               <button class="btn btn-danger"
                       type="button"
                       hx-post="{% url 'orders_delete' order.pk %}"
                       hx-target="#order-card"
                       hx-swap="outerHTML"
-                      hx-trigger="click">Х
+                      hx-trigger="click">
+                <i class="bi bi-trash-fill"></i>
               </button>
             </div>
           </div>

@@ -6,13 +6,16 @@
           <h5 class="col-auto me-auto align-self-center">{{ machine.name }}</h5>
           <div class="col-auto ms-auto">
             <div class="btn-group">
-              <a class="btn btn-secondary" type="button" href="{% url 'machines_edit' machine.pk %}">И</a>
+              <a class="btn btn-secondary" type="button" href="{% url 'machines_edit' machine.pk %}">
+                <i class="bi bi-pencil-fill"></i>
+              </a>
               <button class="btn btn-danger"
                       type="button"
                       hx-post="{% url 'machines_delete' machine.pk %}"
                       hx-target="#machines-list"
                       hx-trigger="click"
-                      hx-confirm="Вы уверены что вы хотите удалить {{ machine.name }}">Х
+                      hx-confirm="Вы уверены что вы хотите удалить {{ machine.name }}">
+                <i class="bi bi-trash-fill"></i>
               </button>
             </div>
           </div>

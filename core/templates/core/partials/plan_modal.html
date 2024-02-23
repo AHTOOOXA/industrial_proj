@@ -46,8 +46,8 @@
 {% block scripts %}
   <script>
       function handleCancelClick(button) {
-          button.parentNode.querySelector('input[type=checkbox]').checked = true;
-          button.parentNode.style.display = "none";
+          button.parentNode.parentNode.querySelector('input[type=checkbox]').checked = true;
+          button.parentNode.parentNode.style.display = "none";
       }
   </script>
 {% endblock %}

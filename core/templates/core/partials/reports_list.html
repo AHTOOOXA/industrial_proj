@@ -6,13 +6,16 @@
           <h5 class="col-auto me-auto align-self-center">{{ report.user.username }} - {{ report.date|date:'d.m.y H:i' }}</h5>
           <div class="col-auto ms-auto">
             <div class="btn-group">
-              <a class="btn btn-secondary" type="button" href="{% url 'reports_edit' report.pk %}">И</a>
+              <a class="btn btn-secondary" type="button" href="{% url 'reports_edit' report.pk %}">
+                <i class="bi bi-pencil-fill"></i>
+              </a>
               <button class="btn btn-danger"
                       type="button"
                       hx-post="{% url 'reports_delete' report.pk %}"
                       hx-target="#reports-list"
                       hx-trigger="click"
-                      hx-confirm="Вы уверены что вы хотите удалить {{ report }}">Х
+                      hx-confirm="Вы уверены что вы хотите удалить {{ report }}">
+                <i class="bi bi-trash-fill"></i>
               </button>
             </div>
           </div>

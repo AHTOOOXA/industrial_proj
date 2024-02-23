@@ -25,14 +25,20 @@
     <thead>
     <tr>
       <th class="text-center" style="width: 10%">
-        <a hx-get="{% url 'shift_table' value=-1 %}"
-           hx-swap="outerHTML"
-           hx-target="#stats-table"
-           class="btn-sm btn-dark"> < </a>
-        <a hx-get="{% url 'shift_table' value=1 %}"
-           hx-swap="outerHTML"
-           hx-target="#stats-table"
-           class="btn-sm btn-dark"> > </a>
+        <div class="btn-group">
+          <a hx-get="{% url 'shift_table' value=-1 %}"
+             hx-swap="outerHTML"
+             hx-target="#stats-table"
+             class="btn-sm btn-dark">
+            <i class="bi bi-arrow-up"></i>
+          </a>
+          <a hx-get="{% url 'shift_table' value=1 %}"
+             hx-swap="outerHTML"
+             hx-target="#stats-table"
+             class="btn-sm btn-dark">
+            <i class="bi bi-arrow-down"></i>
+          </a>
+        </div>
       </th>
       {% for machine in machines %}
         <th class="text-center" scope="col">{{ machine.name }}</th>
