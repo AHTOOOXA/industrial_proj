@@ -477,9 +477,12 @@ def users_add(request):
         if form.is_valid():
             form.save()
             messages.success(request, f'Сотрудник успешно зарегистрирован')
+            return redirect('users_view')
         else:
+            print(form)
+            print(form.errors)
             messages.error(request, f'Ошибка')
-        return redirect('users_view')
+            return redirect('users_add')
 
 
 @login_required(login_url='login_user')
