@@ -2,10 +2,6 @@ from django.contrib import admin
 from core.models import User, Machine, Detail, Report, ReportEntry, Order, OrderEntry, Table, Plan, Step
 
 
-# class ReportAdmin(admin.ModelAdmin):
-#     list_display = ['user']
-
-
 class ReportEntryAdmin(admin.ModelAdmin):
     list_display = ['user', 'report', 'machine', 'detail', 'quantity']
 

@@ -5,7 +5,6 @@
       <th class="text-center" scope="col">Станок</th>
       <th class="text-center" scope="col">Деталь</th>
       <th class="text-center" scope="col">Количество</th>
-{#      <th class="text-center" scope="col"></th>#}
     </tr>
     </thead>
     <tbody>
@@ -20,14 +19,6 @@
         <td class="text-center">
           {{ report_entry.quantity }}
         </td>
-{#        <td class="justify-content-center" style="width: 5%">#}
-{#          <button class="btn btn-danger"#}
-{#                  type="button"#}
-{#                  hx-post="{% url 'report_entries_delete' report.pk report_entry.pk %}"#}
-{#                  hx-target="#report-entries-list-{{ report.pk }}"#}
-{#                  hx-trigger="click">X#}
-{#          </button>#}
-{#        </td>#}
       </tr>
     {% endfor %}
     </tbody>

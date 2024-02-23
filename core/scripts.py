@@ -1,7 +1,6 @@
 import datetime
 
-from .forms import PlanForm
-from .models import Report, Machine, Detail, ReportEntry, Table, Plan, Step, Order, OrderEntry
+from .models import Machine,ReportEntry, Table, Plan, Step, OrderEntry
 
 
 # COMPLETE REFACTOR NEEDED
