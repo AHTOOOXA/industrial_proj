@@ -340,11 +340,7 @@ def reports_edit(request, pk):
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def reports_delete(request, pk):
     Report.objects.get(pk=pk).delete()
-    reports = Report.objects.all().order_by('-id')
-    context = {
-        'reports': reports,
-    }
-    return render(request, 'core/partials/reports_list.html', context)
+    return HttpResponse('')
 
 
 @login_required(login_url='login_user')
@@ -397,11 +393,7 @@ def details_edit(request, pk):
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def details_delete(request, pk):
     Detail.objects.get(pk=pk).delete()
-    details = Detail.objects.all().order_by('-id')
-    context = {
-        'details': details,
-    }
-    return render(request, 'core/partials/details_list.html', context)
+    return HttpResponse('')
 
 
 @login_required(login_url='login_user')
@@ -459,11 +451,7 @@ def machines_edit(request, pk):
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def machines_delete(request, pk):
     Machine.objects.get(pk=pk).delete()
-    machines = Machine.objects.all().order_by('-id')
-    context = {
-        'machines': machines,
-    }
-    return render(request, 'core/partials/machines_list.html', context)
+    return HttpResponse('')
 
 
 @login_required(login_url='login_user')
@@ -517,11 +505,7 @@ def users_edit(request, pk):
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def users_delete(request, pk):
     User.objects.get(pk=pk).delete()
-    users = User.objects.all().order_by('-id')
-    context = {
-        'users': users,
-    }
-    return render(request, 'core/partials/users_list.html', context)
+    return HttpResponse('')
 
 
 def report_modal(request):

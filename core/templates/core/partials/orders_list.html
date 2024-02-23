@@ -22,9 +22,10 @@
               <button class="btn btn-danger"
                       type="button"
                       hx-post="{% url 'orders_delete' order.pk %}"
-                      hx-target="#order-card"
+                      hx-target="closest #order-card"
                       hx-swap="outerHTML"
-                      hx-trigger="click">
+                      hx-trigger="click"
+                      hx-confirm="Вы уверены что вы хотите удалить {{ order.name }} #{{ order.number }}">
                 <i class="bi bi-trash-fill"></i>
               </button>
             </div>

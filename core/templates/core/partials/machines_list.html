@@ -1,6 +1,6 @@
 <div id="machines-list">
   {% for machine in machines %}
-    <div class="card mb-3">
+    <div class="card mb-1" id="machine-card">
       <div class="card-header">
         <div class="row">
           <h5 class="col-auto me-auto align-self-center">{{ machine.name }}</h5>
@@ -12,7 +12,8 @@
               <button class="btn btn-danger"
                       type="button"
                       hx-post="{% url 'machines_delete' machine.pk %}"
-                      hx-target="#machines-list"
+                      hx-target="closest #machine-card"
+                      hx-swap="outerHTML"
                       hx-trigger="click"
                       hx-confirm="Вы уверены что вы хотите удалить {{ machine.name }}">
                 <i class="bi bi-trash-fill"></i>
