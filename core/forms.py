@@ -37,10 +37,6 @@ class ReportForm(forms.ModelForm):
         self.helper.form_tag = False
         self.helper.disable_csrf = True
         self.fields['order'].queryset = Order.objects.order_by('-date')
-        # self.fields['order'].widget = s2forms.ModelSelect2Widget(
-        #     model=Order,
-        #     search_fields=['name__icontains'],
-        # )
 
     class Meta:
         model = Report
@@ -53,7 +49,6 @@ class ReportForm(forms.ModelForm):
         }
         widgets = {
             'date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            # 'order': forms.Select(attrs={'class': 'form'}),
         }
 
 
@@ -65,12 +60,7 @@ class ReportEntryForm(forms.ModelForm):
         self.helper.form_tag = False
         self.helper.disable_csrf = True
         self.helper.render_hidden_fields = True
-        # self.fields['detail'].widget = s2forms.ModelSelect2Widget(
-        #     model=Detail,
-        #     search_fields=['name__icontains'],
-        #     dependent_fields={'order': 'order'},
-        #     max_results=500,
-        # )
+        self.fields['detail'].queryset = Detail.objects.order_by('name')
         self.helper.layout = Layout(
             Row(
                 Field('machine', wrapper_class='form-group col mb-0',
@@ -85,9 +75,6 @@ class ReportEntryForm(forms.ModelForm):
                       ),
                 Field('quantity', wrapper_class='form-group col mb-0'),
                 Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
-                # Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
-                #        onclick="handleCancelClick(this)",
-                #        ),
                 HTML(
                     """
                     <div class="mb-3 form-group col-1 mb-0 mt-4 me-1">
@@ -153,14 +140,12 @@ class OrderEntryForm(forms.ModelForm):
         self.helper.form_tag = False
         self.helper.disable_csrf = True
         self.helper.render_hidden_fields = True
+        self.fields['detail'].queryset = Detail.objects.order_by('name')
         self.helper.layout = Layout(
             Row(
                 Field('detail', wrapper_class='form-group col mb-0'),
                 Field('quantity', wrapper_class='form-group col mb-0'),
                 Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
-                # Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
-                #        onclick="handleCancelClick(this)",
-                #        ),
                 HTML(
                     """
                     <div class="mb-3 form-group col-1 mb-0 mt-4 me-1">
@@ -275,14 +260,12 @@ class PlanEntryForm(forms.ModelForm):
         self.helper.form_tag = False
         self.helper.disable_csrf = True
         self.helper.render_hidden_fields = True
+        self.fields['detail'].queryset = Detail.objects.order_by('name')
         self.helper.layout = Layout(
             Row(
                 Field('detail', wrapper_class='form-group col mb-0'),
                 Field('quantity', wrapper_class='form-group col mb-0'),
                 Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
-                # Button('cancel', 'x', css_class='form-group col-1 btn btn-danger mb-3',
-                #        onclick="handleCancelClick(this)",
-                #        ),
                 HTML(
                     """
                     <div class="mb-3 form-group col-1 mb-0 mt-4 me-3">
