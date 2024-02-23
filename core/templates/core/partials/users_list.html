@@ -3,7 +3,7 @@
     <div class="card mb-3">
       <div class="card-header">
         <div class="row">
-          <h5 class="col-auto me-auto align-self-center">{{ user.username }} {{ user.role }} {{ user.first_name }} {{ user.last_name }}</h5>
+          <h5 class="col-auto me-auto align-self-center">{{ user.username }}</h5>
           <div class="col-auto ms-auto">
             <div class="btn-group">
               <a class="btn btn-secondary" type="button" href="{% url 'users_edit' user.pk %}">И</a>
@@ -15,6 +15,9 @@
                       hx-confirm="Вы уверены что вы хотите удалить {{ user.name }}">Х
               </button>
             </div>
+          </div>
+          <div>
+            {{ user.get_role_display }}
           </div>
         </div>
       </div>

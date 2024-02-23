@@ -285,9 +285,14 @@ def report_success(request, pk):
 @login_required(login_url='login_user')
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def reports_view(request):
-    reports = Report.objects.all().order_by('-date')
+    steps = Step.objects.all()
+    steps_reports = {}
+    for step in steps:
+        step_reports = Report.objects.filter(step=step).order_by('-date')
+        steps_reports[step.id] = step_reports
     context = {
-        'reports': reports,
+        'steps': steps,
+        'steps_reports': steps_reports,
     }
     return render(request, 'core/reports.html', context)
 
@@ -426,9 +431,14 @@ def details_delete(request, pk):
 @login_required(login_url='login_user')
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def machines_view(request):
-    machines = Machine.objects.all().order_by('-id')
+    steps = Step.objects.all()
+    steps_machines = {}
+    for step in steps:
+        step_machines = Machine.objects.filter(step=step).order_by('-id')
+        steps_machines[step.id] = step_machines
     context = {
-        'machines': machines,
+        'steps': steps,
+        'steps_machines': steps_machines,
     }
     return render(request, 'core/machines.html', context)
 
