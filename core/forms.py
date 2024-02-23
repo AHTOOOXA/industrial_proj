@@ -79,7 +79,7 @@ class ReportEntryForm(forms.ModelForm):
                     """
                     <div class="mb-3 form-group col-1 mb-0 mt-4 me-1">
                     <label class="form-label requiredField"> </label>
-                    <a class="btn btn-danger"
+                    <a class="btn btn-danger d-flex align-items-center justify-content-center"
                     type="button" onclick="handleCancelClick(this)">
                     <i class="bi bi-trash-fill"></i>
                     </a>
@@ -150,7 +150,7 @@ class OrderEntryForm(forms.ModelForm):
                     """
                     <div class="mb-3 form-group col-1 mb-0 mt-4 me-1">
                     <label class="form-label requiredField"> </label>
-                    <a class="btn btn-danger"
+                    <a class="btn btn-danger d-flex align-items-center justify-content-center"
                     type="button" onclick="handleCancelClick(this)">
                     <i class="bi bi-trash-fill"></i>
                     </a>
