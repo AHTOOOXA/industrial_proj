@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from django.utils.timezone import now
+from django.utils.timezone import now, make_naive
 
 from .models import ReportEntry, Report, OrderEntry, Order, Machine, Table, Detail, User, Plan, Step
 from core.forms import UserCreateAdminForm, ReportForm, ReportEntryFormset, OrderForm, \
@@ -103,7 +103,7 @@ def orders_add(request):
 def orders_edit(request, pk):
     order = Order.objects.get(pk=pk)
     if request.method == 'GET':
-        form = OrderForm(instance=order, initial={'date': order.date.strftime("%Y-%m-%dT%H:%M")})
+        form = OrderForm(instance=order, initial={'date': make_naive(order.date).strftime("%Y-%m-%dT%H:%M")})
         formset = OrderEntryFormset(instance=order)
         context = {
             'order': order,
@@ -305,8 +305,7 @@ def reports_add(request):
 def reports_edit(request, pk):
     report = Report.objects.get(pk=pk)
     if request.method == 'GET':
-        form = ReportForm(instance=report, initial={'date': report.date.strftime("%Y-%m-%dT%H:%M")})
-        # formset = ReportEntryFormset(queryset=report.reportentry_set.all())
+        form = ReportForm(instance=report, initial={'date': make_naive(report.date).strftime("%Y-%m-%dT%H:%M")})
         formset = ReportEntryFormset(instance=report)
         context = {
             'report': report,
