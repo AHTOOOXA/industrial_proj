@@ -121,3 +121,5 @@ MESSAGE_TAGS = {
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
 }
+
+STATICFILES_DIRS = [BASE_DIR/'static']

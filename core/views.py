@@ -456,7 +456,7 @@ def machines_delete(request, pk):
 @login_required(login_url='login_user')
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def users_view(request):
-    users = User.objects.all().order_by('-id')
+    users = User.objects.all().order_by('username')
     context = {
         'users': users,
     }
