@@ -1,5 +1,15 @@
+{% block extra_head %}
+<style>
+    .report-table {
+        {#font-weight: bold;#}
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+
 <div id="report-entries-list-{{ report.pk }}">
-  <table class="table bg-white">
+  <table class="table report-table table-bordered bg-white mb-0">
     <thead>
     <tr>
       <th class="text-center" scope="col">Станок</th>

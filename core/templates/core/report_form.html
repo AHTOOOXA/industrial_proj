@@ -6,7 +6,7 @@
     <div class="col-12 col-sm-10 col-md-8 col-lg-6 align-content-center">
       <h1 class="text-center">Отчет о смене</h1>
 
-      <form method="POST" enctype="multipart/form-data" id="report-form">
+      <form method="POST" enctype="multipart/form-data" id="report-form" onsubmit="return confirm('Вы уверены что вы хотите отправить отчет?');">
         {% csrf_token %}
         {% crispy form %}
         {{ formset.management_form }}
@@ -20,9 +20,9 @@
                 hx-swap="beforebegin"
                 hx-vals='js:{totalForms: $("#id_reportentry_set-TOTAL_FORMS").val()}'
                 type="button"
-                class="btn btn-success me-2">Добавить еще
+                class="btn btn-success mt-3 me-2">Добавить еще
         </button>
-        <button type="submit" class="btn btn-primary me-2">Подтвердить</button>
+        <button type="submit" class="btn btn-primary mt-3 me-2">Подтвердить</button>
       </form>
     </div>
   </div>

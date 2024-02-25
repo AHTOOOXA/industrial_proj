@@ -1,4 +1,6 @@
 {% load template_filters %}
+
+{% block extra_head %}
 <style>
     .order-table-names {
         background-color: lightgray;
@@ -7,10 +9,22 @@
     .order-table-total {
         background-color: lightgray;
     }
+
+    .order-table {
+        {#font-weight: bold;#}
+        font-size: 14px;
+    }
+
+    .order-table-cell-overflow {
+        font-weight: bold;
+        color: red;
+    }
 </style>
+{% endblock %}
+
 <div id="order-entries-list-{{ order.pk }}">
   <div class="table-responsive">
-    <table class="table bg-white mb-0">
+    <table class="table table-bordered bg-white mb-0 order-table">
       <colgroup>
         <col class="order-table-names"/>
         <col class="order-table-total"/>
@@ -35,8 +49,8 @@
             {{ order_entry.quantity }}
           </td>
           {% for step in steps %}
-            <td class="text-center">
-              {{ leftovers|lookup:step.pk|lookup:order_entry.pk }}
+            <td class="text-center {% if leftovers|lookup:step.pk|lookup:order_entry.pk >= 0 %} order-table-cell-overflow {% endif %}">
+              {% if leftovers|lookup:step.pk|lookup:order_entry.pk >= 0 %}+{% endif %}{{ leftovers|lookup:step.pk|lookup:order_entry.pk }}
             </td>
           {% endfor %}
         </tr>

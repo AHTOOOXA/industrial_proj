@@ -97,7 +97,7 @@ class Detail(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
-    number = models.PositiveIntegerField(default=0)
+    number = models.CharField(max_length=200, default=0)
     date = models.DateTimeField()
 
     def __str__(self):

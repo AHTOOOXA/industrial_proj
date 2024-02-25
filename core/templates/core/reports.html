@@ -1,6 +1,15 @@
 {% extends 'core/base.html' %}
 {% load template_filters %}
 
+{% block extra_head %}
+  <style>
+      .scrollable {
+          height: calc(100vh - 120px);
+          overflow-y: scroll;
+      }
+  </style>
+{% endblock %}
+
 {% block content %}
   <div class="row justify-content-center mb-3">
     <div class="col-12 col-sm-10 col-md-8 col-lg-6">
@@ -13,15 +22,29 @@
       </div>
     </div>
   </div>
-  <div class="row justify-content-center">
+
+  <div class="row">
     {% for step in steps %}
-      <div class="col">
-        <h5 class="text-center">
+      <div class="col p-1">
+        <h4 class="text-center">
           {{ step.name }}
-        </h5>
-        {% include 'core/partials/reports_list.html' with reports=steps_reports|lookup:step.pk %}
+        </h4>
       </div>
     {% endfor %}
+    <hr class="mb-0"/>
   </div>
-
+  <div class="row scrollable pt-3">
+    {% for key, value in shift_reports_lists.items %}
+      <h5>{{ key }}</h5>
+      {% for step, reports in value.items %}
+        <div class="col mb-3 p-1">
+          {% include 'core/partials/reports_list.html' with reports=reports %}
+        </div>
+      {% endfor %}
+      <hr/>
+    {% endfor %}
+  </div>
+  <div hx-get="/reports/?page=2"
+       hx-trigger="revealed"
+       hx-swap="beforebegin"></div>
 {% endblock %}

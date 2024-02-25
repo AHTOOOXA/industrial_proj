@@ -1,11 +1,23 @@
+{% block extra_head %}
+  <style>
+      .report-header-date {
+          font-size: 14px;
+      }
+  </style>
+{% endblock %}
+
+
 <div id="reports-list">
   {% for report in reports %}
     <div class="card mb-1" id="report-card">
-      <div class="card-header">
+      <div class="card-header p-2">
         <div class="row">
-          <h5 class="col-auto me-auto align-self-center">{{ report.user.username }} - {{ report.date|date:'d.m.y H:i' }}</h5>
+          <div class="col-auto align-self-center">{{ report.user.username }}</div>
+          <div class="col-auto align-self-center report-header-date">
+            {{ report.date|date:'d.m.y H:i' }}
+          </div>
           <div class="col-auto ms-auto">
-            <div class="btn-group">
+            <div class="btn-group btn-group-sm">
               <a class="btn btn-secondary" type="button" href="{% url 'reports_edit' report.pk %}">
                 <i class="bi bi-pencil-fill"></i>
               </a>
@@ -22,7 +34,7 @@
           </div>
         </div>
       </div>
-      <div class="card-body">
+      <div class="card-body" style="padding: 0">
         {% include 'core/partials/report_entries_list.html' %}
       </div>
     </div>

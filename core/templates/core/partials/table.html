@@ -18,13 +18,37 @@
           background-color: lightgray;
       {#font-size: 20px;#}{#font-weight: bold;#}
       }
+
+      td.plan {
+          text-align: center;
+      {#color: forestgreen;#}
+          color: #198754;
+      {#font-weight: bold;#}{#font-size: 20px;#}{#font-weight: bold;#}
+      }
+
+      td.day {
+          text-align: center;
+          background-color: #FFFEE0;
+          font-weight: bold;
+      }
+
+      td.night {
+          text-align: center;
+          background-color: #2F4858;
+          color: white;
+          font-weight: bold;
+      }
+
   </style>
 {% endblock %}
 <div id="stats-table" class="tableFixHead">
   <table class="table table-bordered">
+    <colgroup>
+      <col style="width: 70px">
+    </colgroup>
     <thead>
     <tr>
-      <th class="text-center" style="width: 10%">
+      <th class="text-center">
         <div class="btn-group">
           <a hx-get="{% url 'shift_table' value=-1 %}"
              hx-swap="outerHTML"
@@ -50,13 +74,19 @@
       <tr>
         {% for cell in row %}
           {% if cell.text %}
-            <td>
+            <td class="{{ cell.class }}">
               <div>
                 {{ cell.text }}
+                <br/>
+                {% if cell.class == 'day' %}
+                  <i class="bi bi-sun-fill"></i>
+                {% else %}
+                  <i class="bi bi-moon-stars-fill"></i>
+                {% endif %}
               </div>
             </td>
           {% elif cell.plan %}
-            <td class="text-center"
+            <td class="{{ cell.class }}"
                 hx-trigger="click"
                 hx-get='{% url 'plan_modal' %}'
                 hx-target="#modals-here"
@@ -65,7 +95,7 @@
                 data-bs-target="#modals-here">
               {% for plan_entry in cell.plan.planentry_set.all %}
                 <div class="text-center">
-                  {{ plan_entry.detail }}<br>{{ plan_entry.quantity }}
+                  {{ plan_entry.detail }}<br><b>{{ plan_entry.quantity }}</b>
                 </div>
               {% endfor %}
             </td>
@@ -79,7 +109,7 @@
                      hx-vals='{"pk": {{ obj.pk }}}'
                      data-bs-toggle="modal"
                      data-bs-target="#modals-here">
-                  {{ obj.detail }}<br>{{ obj.quantity }}
+                  {{ obj.detail }}<br><b>{{ obj.quantity }}</b>
                 </div>
               {% endfor %}
             </td>

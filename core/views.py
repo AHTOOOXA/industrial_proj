@@ -11,7 +11,7 @@ from .models import ReportEntry, Report, OrderEntry, Order, Machine, Table, Deta
 from core.forms import UserCreateAdminForm, ReportForm, ReportEntryFormset, OrderForm, \
     OrderEntryFormset, DetailForm, MachineForm, PlanForm, PlanEntryFormset
 from .decorators import allowed_user_roles, unauthenticated_user
-from .scripts import get_shifts_table, get_leftovers
+from .scripts import get_shifts_table, get_leftovers, get_reports_view
 
 
 @login_required(login_url='login_user')
@@ -262,6 +262,14 @@ def report_success(request, pk):
 @login_required(login_url='login_user')
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
 def reports_view(request):
+    steps, shift_reports_lists = get_reports_view()
+    context = {
+        'steps': steps,
+        'shift_reports_lists': shift_reports_lists,
+    }
+    return render(request, 'core/reports.html', context)
+
+
     steps = Step.objects.all()
     steps_reports = {}
     for step in steps:
