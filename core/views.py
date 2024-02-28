@@ -518,6 +518,8 @@ def users_delete(request, pk):
     return HttpResponse('')
 
 
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
 def report_modal(request):
     pk = int(str(request.GET.get("pk")))
     report = ReportEntry.objects.get(pk=pk).report
@@ -542,6 +544,8 @@ def add_plan_entry_form(request):
         return render(request, 'core/partials/plan_entry_form.html', context)
 
 
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
 def plan_modal(request):
     if request.method == 'GET':
         pk = int(str(request.GET.get("pk")))
