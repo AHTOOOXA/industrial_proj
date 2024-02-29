@@ -1,4 +1,8 @@
-<option value="" selected="">---------</option>
+{% if not cur_value %}
+  <option value="" selected>---------</option>
+{% else %}
+  <option value="">---------</option>
+{% endif %}
 {% for machine in machines %}
-  <option value={{ machine.id }}>{{ machine.name }}</option>
+  <option value={{ machine.id }} {% if cur_value == machine.id %} selected{% endif %}>{{ machine.name }}</option>
 {% endfor %}

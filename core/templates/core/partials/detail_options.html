@@ -1,4 +1,13 @@
-<option value="" selected="">---------</option>
+{% if not cur_value %}
+  <option value="" selected>---------</option>
+{% else %}
+  <option value="">---------</option>
+{% endif %}
 {% for detail in details %}
-<option value={{ detail.id }}>{{ detail.name }}</option>
+  <option value={{ detail.id }} {% if cur_value == detail.id %} selected{% endif %}>{{ detail.name }}</option>
 {% endfor %}
+
+{#<option value="" selected="">---------</option>#}
+{#{% for detail in details %}#}
+{#<option value={{ detail.id }}>{{ detail.name }}</option>#}
+{#{% endfor %}#}

@@ -255,24 +255,41 @@ def add_report_entry_form(request):
 
 @login_required(login_url='login_user')
 def detail_options(request):
-    entries = OrderEntry.objects.filter(order__pk=request.GET.get('order')).all()
+    order = request.GET.get('order')
     details = []
-    for entry in entries:
-        details.append({
-            'id': entry.detail.id,
-            'name': entry.detail.name,
-        })
+    if order:
+        details = Detail.objects.filter(orderentry__order=order)
+        # entries = OrderEntry.objects.filter(order__pk=request.GET.get('order')).all()
+        # for entry in entries:
+        #     details.append({
+        #         'id': entry.detail.id,
+        #         'name': entry.detail.name,
+        #     })
+    else:
+        entries = Detail.objects.all().order_by('name')
+    cur_value = next(request.GET.values())
+    if cur_value != '':
+        cur_value = int(cur_value)
     context = {
         'details': details,
+        'cur_value': cur_value,
     }
     return render(request, 'core/partials/detail_options.html', context)
 
 
 @login_required(login_url='login_user')
 def machine_options(request):
-    machines = Machine.objects.filter(step__pk=request.GET.get('step')).all()
+    step = request.GET.get('step')
+    if step:
+        machines = Machine.objects.filter(step__pk=step).all()
+    else:
+        machines = Machine.objects.all()
+    cur_value = next(request.GET.values())
+    if cur_value != '':
+        cur_value = int(cur_value)
     context = {
         'machines': machines,
+        'cur_value': cur_value,
     }
     return render(request, 'core/partials/machines_options.html', context)
 
