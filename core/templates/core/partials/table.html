@@ -21,8 +21,7 @@
 
       td.plan {
           text-align: center;
-      {#color: forestgreen;#}
-          color: #198754;
+      {#color: forestgreen;#} color: #198754;
       {#font-weight: bold;#}{#font-size: 20px;#}{#font-weight: bold;#}
       }
 
@@ -39,6 +38,14 @@
           font-weight: bold;
       }
 
+      .detail-name {
+          font-size: 12px;
+      }
+
+      .quantity {
+          font-size: 14px;
+          font-weight: bold;
+      }
   </style>
 {% endblock %}
 <div id="stats-table" class="tableFixHead">
@@ -94,22 +101,34 @@
                 data-bs-toggle="modal"
                 data-bs-target="#modals-here">
               {% for plan_entry in cell.plan.planentry_set.all %}
-                <div class="text-center">
-                  {{ plan_entry.detail }}<br><b>{{ plan_entry.quantity }}</b>
+                <div class="text-center detail-name">
+                  {{ plan_entry.detail }}
+                </div>
+                <div class="text-center quantity">
+                  {{ plan_entry.quantity }}
                 </div>
               {% endfor %}
             </td>
           {% else %}
             <td class="{{ cell.class }}">
               {% for obj in cell.objs %}
-                <div class="text-center"
+                <div class="text-center detail-name"
                      hx-trigger="click"
                      hx-get='{% url 'report_modal' %}'
                      hx-target="#modals-here"
                      hx-vals='{"pk": {{ obj.pk }}}'
                      data-bs-toggle="modal"
                      data-bs-target="#modals-here">
-                  {{ obj.detail }}<br><b>{{ obj.quantity }}</b>
+                  {{ obj.detail }}
+                </div>
+                <div class="text-center quantity"
+                     hx-trigger="click"
+                     hx-get='{% url 'report_modal' %}'
+                     hx-target="#modals-here"
+                     hx-vals='{"pk": {{ obj.pk }}}'
+                     data-bs-toggle="modal"
+                     data-bs-target="#modals-here">
+                  {{ obj.quantity }}
                 </div>
               {% endfor %}
             </td>
