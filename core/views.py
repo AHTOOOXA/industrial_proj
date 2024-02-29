@@ -209,8 +209,34 @@ def report_form(request):
                         entry_form.save()
                 messages.success(request, 'Отчет успешно отправлен!')
             logout(request)
-            return redirect('report_success', pk=report_instance.pk)
+            return redirect('login_user')
         return redirect('report_form')
+
+
+@login_required(login_url='login_user')
+def report_confirmation(request):
+    if request.method == "POST":
+        POST = request.POST.copy()
+        POST['user'] = request.user
+        POST['date'] = now()
+        form = ReportForm(POST)
+        if form.is_valid():
+            report_instance = form.save(commit=False)
+            entry_formset = ReportEntryFormset(request.POST, request.FILES, instance=report_instance)
+            if entry_formset.is_valid():
+                report_entries = []
+                for entry_form in entry_formset:
+                    if entry_form.cleaned_data['DELETE'] is not True:
+                        entry = entry_form.save(commit=False)
+                        report_entries.append(entry)
+                context = {
+                    'report': report_instance,
+                    'report_entries': report_entries,
+                }
+                print(report_entries)
+                return render(request, 'core/partials/report_confirmation.html', context)
+        return HttpResponse('')
+    return HttpResponse('')
 
 
 @login_required(login_url='login_user')
@@ -266,18 +292,6 @@ def reports_view(request):
     context = {
         'steps': steps,
         'shift_reports_lists': shift_reports_lists,
-    }
-    return render(request, 'core/reports.html', context)
-
-
-    steps = Step.objects.all()
-    steps_reports = {}
-    for step in steps:
-        step_reports = Report.objects.filter(step=step).order_by('-date')
-        steps_reports[step.id] = step_reports
-    context = {
-        'steps': steps,
-        'steps_reports': steps_reports,
     }
     return render(request, 'core/reports.html', context)
 

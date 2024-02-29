@@ -6,23 +6,36 @@
     <div class="col-12 col-sm-10 col-md-8 col-lg-6 align-content-center">
       <h1 class="text-center">Отчет о смене</h1>
 
-      <form method="POST" enctype="multipart/form-data" id="report-form" onsubmit="return confirm('Вы уверены что вы хотите отправить отчет?');">
-        {% csrf_token %}
-        {% crispy form %}
-        {{ formset.management_form }}
-        {% for entry_form in formset %}
-          <div id="report-entry-form-wrapper">
-            {% crispy entry_form %}
-          </div>
-        {% endfor %}
 
-        <button hx-get="{% url 'add_report_entry_form' %}"
-                hx-swap="beforebegin"
-                hx-vals='js:{totalForms: $("#id_reportentry_set-TOTAL_FORMS").val()}'
-                type="button"
-                class="btn btn-success mt-3 me-2">Добавить еще
-        </button>
-        <button type="submit" class="btn btn-primary mt-3 me-2">Подтвердить</button>
+      <form method="POST" enctype="multipart/form-data" id="report-form">
+
+
+        <div id="report-confirmation"></div>
+        <div id="to-hide">
+          {% csrf_token %}
+          {% crispy form %}
+          {{ formset.management_form }}
+          {% for entry_form in formset %}
+            <div id="report-entry-form-wrapper">
+              {% crispy entry_form %}
+            </div>
+          {% endfor %}
+
+          <button hx-get="{% url 'add_report_entry_form' %}"
+                  hx-swap="beforebegin"
+                  hx-vals='js:{totalForms: $("#id_reportentry_set-TOTAL_FORMS").val()}'
+                  type="button"
+                  class="btn btn-success mt-3 me-2">Добавить еще
+          </button>
+          <button hx-post="{% url 'report_confirmation' %}"
+                  hx-target="#report-confirmation"
+                  hx-swap="outerHTML"
+                  onclick="hideForm()"
+                  type="button"
+                  class="btn btn-primary mt-3 me-2">Готово
+          </button>
+{#          <button type="submit" class="btn btn-primary mt-3 me-2">Подтвердить</button>#}
+        </div>
       </form>
     </div>
   </div>
@@ -33,6 +46,20 @@
       function handleCancelClick(button) {
           button.parentNode.parentNode.querySelector('input[type=checkbox]').checked = true;
           button.parentNode.parentNode.style.display = "none";
+      }
+
+      function hideForm() {
+          let form = document.getElementById('to-hide');
+          form.style.display = "none";
+          let confirmation = document.getElementById('report-confirmation');
+          confirmation.style.display = "";
+      }
+
+      function displayForm() {
+          let form = document.getElementById('to-hide');
+          form.style.display = "";
+          let confirmation = document.getElementById('report-confirmation');
+          confirmation.style.display = "none";
       }
   </script>
 {% endblock %}
