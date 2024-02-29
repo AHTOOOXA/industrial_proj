@@ -1,7 +1,7 @@
 {% load crispy_forms_tags %}
 
 <div class="modal-dialog modal-dialog-centered">
-  <div class="modal-content">
+  <div class="modal-content" id="myModal">
     <div class="modal-header">
       <h5 class="modal-title align-self-center">
         Редактировать план {{ plan.date|date:'d.m.y H:i' }}
@@ -49,5 +49,17 @@
           button.parentNode.parentNode.querySelector('input[type=checkbox]').checked = true;
           button.parentNode.parentNode.style.display = "none";
       }
+
+      $(".select").select2({
+          theme: "bootstrap-5",
+          dropdownParent: $('#myModal'),
+      })
+
+      document.addEventListener('htmx:afterRequest', function (evt) {
+          $(".select").select2({
+              theme: "bootstrap-5",
+              dropdownParent: $('#myModal'),
+          })
+      });
   </script>
 {% endblock %}
