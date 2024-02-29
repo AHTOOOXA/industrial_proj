@@ -28,11 +28,20 @@
 {% endblock %}
 
 {% block scripts %}
+  <script>
+      function handleCancelClick(button) {
+          button.parentNode.parentNode.querySelector('input[type=checkbox]').checked = true;
+          button.parentNode.parentNode.style.display = "none";
+      }
 
-  {#    <script>#}
-  {#        $(".select").select2({#}
-  {#            theme: "bootstrap-5",#}
-  {#        })#}
-  {#    </script>#}
+      $(".select").select2({
+          theme: "bootstrap-5",
+      })
 
+      document.addEventListener('htmx:afterRequest', function (evt) {
+          $(".select").select2({
+              theme: "bootstrap-5",
+          })
+      });
+  </script>
 {% endblock %}
