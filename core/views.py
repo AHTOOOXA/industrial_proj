@@ -233,7 +233,7 @@ def report_confirmation(request):
                     'report': report_instance,
                     'report_entries': report_entries,
                 }
-                print(report_entries)
+                # print(report_entries)
                 return render(request, 'core/partials/report_confirmation.html', context)
         return HttpResponse('')
     return HttpResponse('')

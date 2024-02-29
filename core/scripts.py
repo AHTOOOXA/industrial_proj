@@ -69,7 +69,7 @@ def get_leftovers():
             leftovers[step.pk][order_entry.pk] = -order_entry.quantity
             for report_entry in ReportEntry.objects.filter(report__order=order_entry.order, report__step=step,
                                                            detail=order_entry.detail):
-                print('hello', order_entry.detail, report_entry.detail, report_entry.quantity)
+                # print('hello', order_entry.detail, report_entry.detail, report_entry.quantity)
                 leftovers[step.id][order_entry.pk] += report_entry.quantity
     return leftovers
 
