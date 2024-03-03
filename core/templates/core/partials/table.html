@@ -1,9 +1,19 @@
 {% load crispy_forms_tags %}
 {% block extra_head %}
   <style>
+      table {
+          table-layout: fixed;
+      }
+
+      td {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          word-wrap: break-word;
+      }
+
       .tableFixHead {
           overflow: auto;
-          height: calc(100vh - 120px);
+          height: calc((100vh - 120px) / zoom);
       }
 
       .tableFixHead thead th {
@@ -16,13 +26,11 @@
 
       td.done {
           background-color: lightgray;
-      {#font-size: 20px;#}{#font-weight: bold;#}
       }
 
       td.plan {
           text-align: center;
-      {#color: forestgreen;#} color: #198754;
-      {#font-weight: bold;#}{#font-size: 20px;#}{#font-weight: bold;#}
+          color: #198754;
       }
 
       td.day {
