@@ -215,11 +215,16 @@ def report_form(request):
 
 @login_required(login_url='login_user')
 def report_confirmation(request):
+    POST = request.POST.copy()
+    if 'user' not in POST:
+        POST['user'] = request.user
+    if 'date' not in POST:
+        POST['date'] = now()
     if request.method == "POST":
-        form = ReportForm(request.POST)
+        form = ReportForm(POST)
         if form.is_valid():
             report_instance = form.save(commit=False)
-            entry_formset = ReportEntryFormset(request.POST, request.FILES, instance=report_instance)
+            entry_formset = ReportEntryFormset(POST, request.FILES, instance=report_instance)
             if entry_formset.is_valid():
                 report_entries = []
                 for entry_form in entry_formset:
@@ -231,8 +236,16 @@ def report_confirmation(request):
                     'report_entries': report_entries,
                 }
                 return render(request, 'core/partials/report_confirmation.html', context)
-        return HttpResponse('')
-    return HttpResponse('')
+            else:
+                context = {
+                    'errors': entry_formset.errors,
+                }
+                return render(request, 'core/partials/report_confirmation_error.html', context)
+        else:
+            context = {
+                'errors': form.errors,
+            }
+            return render(request, 'core/partials/report_confirmation_error.html', context)
 
 
 @login_required(login_url='login_user')

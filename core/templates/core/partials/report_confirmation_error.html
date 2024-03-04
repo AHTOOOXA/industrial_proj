@@ -1,0 +1,22 @@
+<div id="report-confirmation">
+  <div class="card mb-3">
+    <div class="card-header">
+      <div class="row">
+        <h5 class="col-auto me-auto align-self-center">
+          Неверно заполнена форма
+        </h5>
+      </div>
+    </div>
+    <div class="card-body">
+      <div>
+        {{ errors }}
+      </div>
+      <button
+              onclick="displayForm()"
+              type="button"
+              class="btn btn-secondary mt-3 me-2">
+        Назад
+      </button>
+    </div>
+  </div>
+</div>
