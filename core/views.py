@@ -31,6 +31,12 @@ def stats(request):
         for report_entry in ReportEntry.objects.filter(report__order=order_entry.order):
             order_entries_leftovers[order_entry.id] -= report_entry.quantity
 
+    current_date = Table.objects.all()[0].current_date
+    today = now()
+    today = today - datetime.timedelta(days=1)
+    today = today.replace(hour=current_date.hour % 12, minute=current_date.minute,
+                          second=current_date.second, microsecond=current_date.microsecond)
+    Table.objects.all().update(current_date=today)
     active_step_pk, machines, table = get_shifts_table()
     context = {
         'orders': orders,
