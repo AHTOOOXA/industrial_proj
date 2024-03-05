@@ -211,7 +211,7 @@ def report_form(request):
             entry_formset = ReportEntryFormset(request.POST, request.FILES, instance=report_instance)
             if entry_formset.is_valid():
                 for entry_form in entry_formset:
-                    if entry_form.cleaned_data['DELETE'] is not True:
+                    if 'DELETE' in entry_form.cleaned_data and entry_form.cleaned_data['DELETE'] is not True:
                         entry_form.save()
                 messages.success(request, 'Отчет успешно отправлен!')
             logout(request)
@@ -234,7 +234,7 @@ def report_confirmation(request):
             if entry_formset.is_valid():
                 report_entries = []
                 for entry_form in entry_formset:
-                    if entry_form.cleaned_data['DELETE'] is not True:
+                    if 'DELETE' in entry_form.cleaned_data and entry_form.cleaned_data['DELETE'] is not True:
                         entry = entry_form.save(commit=False)
                         report_entries.append(entry)
                 context = {
