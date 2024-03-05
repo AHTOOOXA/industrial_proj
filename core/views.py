@@ -319,13 +319,25 @@ def report_success(request, pk):
 
 @login_required(login_url='login_user')
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
-def reports_view(request):
-    steps, shift_reports_lists = get_reports_view()
-    context = {
-        'steps': steps,
-        'shift_reports_lists': shift_reports_lists,
-    }
-    return render(request, 'core/reports.html', context)
+def reports_view(request, page=1):
+    if page == 1:
+        steps, shift_reports_lists = get_reports_view()
+        context = {
+            'steps': steps,
+            'shift_reports_lists': shift_reports_lists,
+        }
+        return render(request, 'core/reports.html', context)
+    else:
+        steps, shift_reports_lists = get_reports_view(page=page)
+        if len(shift_reports_lists) == 0:
+            return HttpResponse('')
+        else:
+            context = {
+                'steps': steps,
+                'shift_reports_lists': shift_reports_lists,
+                'page': page + 1,
+            }
+            return render(request, 'core/partials/reports_shifts.html', context)
 
 
 @login_required(login_url='login_user')

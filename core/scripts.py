@@ -74,17 +74,15 @@ def get_leftovers():
     return leftovers
 
 
-def get_reports_view(
-        from_date=datetime.datetime.today().replace(hour=0, minute=0, second=0) - datetime.timedelta(days=2),
-        shifts_count=24):
+def get_reports_view(shifts_count=10, page=1):
+    # getting close to cur_time based on Table.current_date to correctly sep shifts
     from_date = Table.objects.all()[0].current_date
     cur_time = datetime.datetime.today().replace(hour=0, minute=0, second=0)
     cur_time = make_aware(cur_time)
-    print(from_date)
-    print(cur_time)
     while from_date < cur_time:
         from_date += datetime.timedelta(hours=12)
     from_date += datetime.timedelta(hours=24)
+    from_date -= datetime.timedelta(hours=((page - 1) * shifts_count - (page - 1)) * 12)
     timestamps = [from_date - datetime.timedelta(hours=12 * i) for i in range(0, shifts_count)]
     print(*[localtime(x).strftime("%Y-%m-%dT%H:%M") for x in timestamps])
 
@@ -92,16 +90,12 @@ def get_reports_view(
     shift_reports_lists = {}
     for i in range(len(timestamps) - 1):
         shift_objs = Report.objects.filter(
-            date__range=(timestamps[i + 1], timestamps[i]))
-        shift_name = str(timestamps[i + 1].strftime('%d.%m')) + (' день' if timestamps[i + 1].hour < 12 else ' ночь')
-        # print('range', timestamps[i + 1], timestamps[i], sep=' ')
-        # print('shift objs:', shift_objs, sep=' ')
-        # print(shift_name)
+            date__range=(timestamps[i + 1], timestamps[i])).order_by('-date')
+        shift_name = str(timestamps[i + 1].strftime('%d.%m')) + (' День' if timestamps[i + 1].hour < 12 else ' Ночь')
+        # shift_name += ' ' + str(localtime(timestamps[i + 1])) + '  ' + str(localtime(timestamps[i]))
         if shift_objs:
             shift_reports_lists[shift_name] = {}
             for step in steps:
                 shift_step_objs = shift_objs.filter(step=step)
-                # print('wlfepq:', shift_step_objs, sep=' ')
                 shift_reports_lists[shift_name][step] = shift_step_objs
-    # print(shift_reports_lists)
     return steps, shift_reports_lists

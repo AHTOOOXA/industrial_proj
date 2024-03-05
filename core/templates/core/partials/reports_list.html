@@ -1,20 +1,40 @@
 {% block extra_head %}
   <style>
+      .report-user {
+          font-size: 16px;
+          font-weight: bold;
+      }
+
       .report-header-date {
+          font-size: 12px;
+      }
+
+      .report-list {
+          font-size: 14px;
+      }
+
+      .report-order-number {
           font-size: 14px;
       }
   </style>
 {% endblock %}
 
 
-<div id="reports-list">
+<div class="report-list" id="reports-list">
   {% for report in reports %}
     <div class="card mb-1" id="report-card">
       <div class="card-header p-2">
         <div class="row">
-          <div class="col-auto align-self-center">{{ report.user.username }}</div>
-          <div class="col-auto align-self-center report-header-date">
-            {{ report.date|date:'d.m.y H:i' }}
+          <div class="col">
+            <div class="report-user">
+              {{ report.user.username }}
+            </div>
+            <div class="report-order-number">
+              {{ report.order.name }} {{ report.order }}
+            </div>
+            <div class="report-header-date">
+              {{ report.date|date:'d.m.y H:i' }}
+            </div>
           </div>
           <div class="col-auto ms-auto">
             <div class="btn-group btn-group-sm">

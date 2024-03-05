@@ -10,6 +10,7 @@ urlpatterns = [
     path("htmx/report_confirmation", views.report_confirmation, name='report_confirmation'),
     path("report_success/<int:pk>", views.report_success, name='report_success'),
     path("reports", views.reports_view, name='reports_view'),
+    path("reports/<int:page>", views.reports_view, name='reports_view'),
     path("reports/add", views.reports_add, name='reports_add'),
     path("reports/<int:pk>/edit", views.reports_edit, name='reports_edit'),
     path("reports/<int:pk>/delete", views.reports_delete, name='reports_delete'),

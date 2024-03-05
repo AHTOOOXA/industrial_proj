@@ -33,6 +33,7 @@
     {% endfor %}
     <hr class="mb-0"/>
   </div>
+
   <div class="row scrollable pt-3">
     {% for key, value in shift_reports_lists.items %}
       <h5>{{ key }}</h5>
@@ -43,8 +44,14 @@
       {% endfor %}
       <hr/>
     {% endfor %}
+
+    <div style="height:100px; width:100%"
+         id="scroll-to-update"
+         hx-target="this"
+         hx-get="{% url 'reports_view' page=2 %}"
+         hx-trigger="intersect threshold:0.5"
+{#         hx-trigger="revealed"#}
+         hx-swap="outerHTML">
+    </div>
   </div>
-  <div hx-get="/reports/?page=2"
-       hx-trigger="revealed"
-       hx-swap="beforebegin"></div>
 {% endblock %}
