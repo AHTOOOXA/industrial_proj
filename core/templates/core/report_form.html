@@ -8,9 +8,8 @@
 
 
       <form method="POST" enctype="multipart/form-data" id="report-form">
-
-
         <div id="report-confirmation"></div>
+
         <div id="to-hide">
           {% csrf_token %}
           {% crispy form %}
@@ -21,6 +20,7 @@
             </div>
           {% endfor %}
 
+          <button type="submit" disabled style="display: none" aria-hidden="true"></button>
           <button hx-get="{% url 'add_report_entry_form' %}"
                   hx-swap="beforebegin"
                   hx-vals='js:{totalForms: $("#id_reportentry_set-TOTAL_FORMS").val()}'
@@ -34,7 +34,6 @@
                   type="button"
                   class="btn btn-primary mt-3 me-2">Готово
           </button>
-{#          <button type="submit" class="btn btn-primary mt-3 me-2">Подтвердить</button>#}
         </div>
       </form>
     </div>
@@ -60,6 +59,27 @@
           form.style.display = "";
           let confirmation = document.getElementById('report-confirmation');
           confirmation.style.display = "none";
+      }
+
+      $(document).ready(function () {
+          $(window).keydown(function (event) {
+              if (event.keyCode == 13) {
+                  event.preventDefault();
+                  hideKeyboard($(document.activeElement));
+                  return false;
+              }
+          });
+      });
+
+      function hideKeyboard(element) {
+          element.attr('readonly', 'readonly'); // Force keyboard to hide on input field.
+          element.attr('disabled', 'true'); // Force keyboard to hide on textarea field.
+          setTimeout(function () {
+              element.blur();  //actually close the keyboard
+              // Remove readonly attribute after keyboard is hidden.
+              element.removeAttr('readonly');
+              element.removeAttr('disabled');
+          }, 100);
       }
   </script>
 {% endblock %}
