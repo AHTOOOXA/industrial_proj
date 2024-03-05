@@ -95,7 +95,7 @@ class Detail(models.Model):
 
 
 class Order(models.Model):
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     name = models.CharField(max_length=200)
     number = models.CharField(max_length=200, default=0)
     date = models.DateTimeField()
@@ -112,9 +112,9 @@ class OrderEntry(models.Model):
 
 class Report(models.Model):
     # date time ...
-    user = models.ForeignKey(User, null=True, blank=False, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, blank=False, on_delete=models.SET_NULL)
     date = models.DateTimeField()
-    order = models.ForeignKey(Order, null=True, blank=False, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, null=True, blank=False, on_delete=models.SET_NULL)
     step = models.ForeignKey(Step, null=False, blank=False, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -122,7 +122,7 @@ class Report(models.Model):
 
 
 class ReportEntry(models.Model):
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     report = models.ForeignKey(Report, null=True, on_delete=models.CASCADE)
     machine = models.ForeignKey(Machine, null=True, on_delete=models.CASCADE)
     detail = models.ForeignKey(Detail, null=True, on_delete=models.CASCADE)
