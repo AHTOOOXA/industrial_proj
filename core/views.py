@@ -82,6 +82,26 @@ def switch_step(request, step):
 
 @login_required(login_url='login_user')
 @allowed_user_roles(['ADMIN', 'MODERATOR'])
+def orders_view(request):
+    leftovers = get_leftovers()
+
+    orders = Order.objects.all().order_by('-id')
+    order_entries_leftovers = {}
+    for order_entry in OrderEntry.objects.all():
+        order_entries_leftovers[order_entry.id] = order_entry.quantity
+        for report_entry in ReportEntry.objects.filter(report__order=order_entry.order):
+            order_entries_leftovers[order_entry.id] -= report_entry.quantity
+    context = {
+        'orders': orders,
+        'leftovers': leftovers,
+        'order_entries_leftovers': order_entries_leftovers,
+        'steps': Step.objects.all(),
+    }
+    return render(request, 'core/orders.html', context)
+
+
+@login_required(login_url='login_user')
+@allowed_user_roles(['ADMIN', 'MODERATOR'])
 def orders_add(request):
     if request.method == "GET":
         form = OrderForm(initial={'date': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})

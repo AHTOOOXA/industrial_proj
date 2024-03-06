@@ -10,6 +10,12 @@
         background-color: lightgray;
     }
 
+    .order-table-heading tr th {
+        white-space: nowrap;
+        text-overflow: clip;
+        padding: 1px;
+    }
+
     .order-table {
         {#font-weight: bold;#}
         font-size: 12px;
@@ -30,12 +36,12 @@
         <col class="order-table-total"/>
         <col/>
       </colgroup>
-      <thead>
+      <thead class="order-table-heading">
       <tr>
-        <th class="text-center" scope="col">Деталь</th>
-        <th class="text-center" scope="col">Всего</th>
+        <th class="text-center" scope="col" style="width: 35%">Деталь</th>
+        <th class="text-center" scope="col" style="width: 13%">Всего</th>
         {% for step in steps %}
-          <th class="text-center" scope="col"> {{ step.name }} </th>
+          <th class="text-center" scope="col" style="width: 13%"> {{ step.name }} </th>
         {% endfor %}
       </tr>
       </thead>
