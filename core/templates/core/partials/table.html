@@ -147,3 +147,17 @@
     </tbody>
   </table>
 </div>
+
+{% block scripts %}
+  <script>
+      const trElements = document.querySelectorAll('#stats-table > table > tbody > tr');
+      let totalHeight = 0;
+      for (let i = 0; i < 10 && i < trElements.length; i++) {
+          const trElement = trElements[i];
+          totalHeight += trElement.clientHeight;
+          totalHeight += 2;
+      }
+      const el = document.getElementById('stats-table');
+      el.scrollTop = totalHeight;
+  </script>
+{% endblock %}

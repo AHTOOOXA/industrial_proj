@@ -8,7 +8,7 @@ from .models import Machine, ReportEntry, Table, Plan, Step, OrderEntry, Report
 # COMPLETE REFACTOR NEEDED
 def get_shifts_table(
         from_date=datetime.datetime.today().replace(hour=0, minute=0, second=0) - datetime.timedelta(days=2),
-        shifts_count=24):
+        shifts_count=28):
     from_date = Table.objects.all()[0].current_date
     step = Table.objects.all()[0].current_step
     table = []
