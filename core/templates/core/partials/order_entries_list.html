@@ -47,7 +47,7 @@
       </thead>
       <tbody>
       {% for order_entry in order.orderentry_set.all %}
-        <tr>
+        <tr class={{ order_entry.detail|get_detail_class }}>
           <td class="text-center">
             {{ order_entry.detail }}
           </td>

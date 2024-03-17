@@ -1,4 +1,5 @@
 {% load crispy_forms_tags %}
+{% load template_filters %}
 {% block extra_head %}
   <style>
       table {
@@ -57,13 +58,13 @@
   </style>
 {% endblock %}
 <div id="stats-table" class="tableFixHead">
-  <table class="table table-bordered">
+  <table class="table table-bordered text-center">
     <colgroup>
       <col style="width: 70px">
     </colgroup>
     <thead>
     <tr>
-      <th class="text-center">
+      <th>
         <div class="btn-group">
           <a hx-get="{% url 'shift_table' value=-1 %}"
              hx-swap="outerHTML"
@@ -80,7 +81,7 @@
         </div>
       </th>
       {% for machine in machines %}
-        <th class="text-center" scope="col">{{ machine.name }}</th>
+        <th scope="col">{{ machine.name }}</th>
       {% endfor %}
     </tr>
     </thead>
@@ -109,34 +110,32 @@
                 data-bs-toggle="modal"
                 data-bs-target="#modals-here">
               {% for plan_entry in cell.plan.planentry_set.all %}
-                <div class="text-center detail-name">
-                  {{ plan_entry.detail }}
-                </div>
-                <div class="text-center quantity">
-                  {{ plan_entry.quantity }}
+                <div class={{ plan_entry.detail|get_detail_class }}>
+                  <div class="detail-name">
+                    {{ plan_entry.detail }}
+                  </div>
+                  <div class="quantity">
+                    {{ plan_entry.quantity }}
+                  </div>
                 </div>
               {% endfor %}
             </td>
           {% else %}
             <td class="{{ cell.class }}">
               {% for obj in cell.objs %}
-                <div class="text-center detail-name"
+                <div class="{{ obj.detail|get_detail_class }}"
                      hx-trigger="click"
                      hx-get='{% url 'report_modal' %}'
                      hx-target="#modals-here"
                      hx-vals='{"pk": {{ obj.pk }}}'
                      data-bs-toggle="modal"
                      data-bs-target="#modals-here">
-                  {{ obj.detail }}
-                </div>
-                <div class="text-center quantity"
-                     hx-trigger="click"
-                     hx-get='{% url 'report_modal' %}'
-                     hx-target="#modals-here"
-                     hx-vals='{"pk": {{ obj.pk }}}'
-                     data-bs-toggle="modal"
-                     data-bs-target="#modals-here">
-                  {{ obj.quantity }}
+                  <div class="detail-name">
+                    {{ obj.detail }}
+                  </div>
+                  <div class="quantity">
+                    {{ obj.quantity }}
+                  </div>
                 </div>
               {% endfor %}
             </td>

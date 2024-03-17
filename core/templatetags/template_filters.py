@@ -9,3 +9,8 @@ def lookup(dictionary, key):
 @register.filter(name='has_role')
 def has_role(user, role_name):
     return user.role == role_name
+
+
+@register.filter(name='get_detail_class')
+def get_detail_class(detail):
+    return f'detail-{detail.pk}'

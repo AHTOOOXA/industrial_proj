@@ -44,3 +44,32 @@
   </div>
 
 {% endblock %}
+
+{% block scripts %}
+  <script>
+      $(document).ready(function () {
+          var lastClassChanged = '';
+
+          function changeToGreen(className) {
+              if (lastClassChanged === className) {
+                  $(className).css('background', '');
+                  lastClassChanged = '';
+              } else {
+                  $(lastClassChanged).css('background', '');
+                  $(className).css('background', '#ffc008');
+                  lastClassChanged = className;
+              }
+          }
+
+          // Attach the click event handler to all tr elements under the table with class "order-table"
+          $('table.order-table tbody tr').click(function () {
+              let className = $(this).attr('class'); // Get the class of the clicked element
+              console.log("Last class changed:", lastClassChanged);
+              changeToGreen('.' + className); // Call the function to change elements to green with the class name as an argument
+          });
+
+          console.log("Last class changed:", lastClassChanged);
+      });
+
+  </script>
+{% endblock %}
