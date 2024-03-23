@@ -365,7 +365,7 @@ def reports_view(request, page=1):
                 return render(request, 'core/partials/reports_shifts_next_page.html', context)
     else:
         # initial page load
-        users = User.objects.all()
+        users = User.objects.all().order_by('username')
         context = {
             'steps': steps,
             'shift_reports_lists': shift_reports_lists,
