@@ -12,8 +12,36 @@
 
 {% block content %}
   <div class="row justify-content-center mb-3">
-    <div class="col-12 col-sm-10 col-md-8 col-lg-6">
-      <div class="d-grid gap-3">
+    <div class="row">
+      <div class="col-lg-3 col-md-6 d-grid">
+        <div class="row">
+          <div class="col-9" style="padding: 0">
+            <select class="form-select"
+                    aria-label="User select"
+                    name="user_pk"
+                    hx-get="{% url 'reports_view' page=1 %}"
+                    hx-trigger="change"
+                    hx-target="#reports-shits"
+                    hx-include="[name='user_pk']">
+              <option value="">Все пользователи</option>
+              <option value="-1">Без пользователя</option>
+              {% for user in users %}
+                <option value={{ user.pk }}>{{ user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-3">
+            <a class="btn btn-primary"
+               type="button"
+               hx-get="{% url 'reports_view' page=1 %}"
+               hx-target="#reports-shits"
+               hx-include="[name='user_pk']">
+              <i class="bi bi-search"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 d-grid">
         <a class="btn btn-success"
            type="button"
            href="{% url 'reports_add' %}">
@@ -34,24 +62,6 @@
     <hr class="mb-0"/>
   </div>
 
-  <div class="row scrollable pt-3">
-    {% for key, value in shift_reports_lists.items %}
-      <h5>{{ key }}</h5>
-      {% for step, reports in value.items %}
-        <div class="col mb-3 p-1">
-          {% include 'core/partials/reports_list.html' with reports=reports %}
-        </div>
-      {% endfor %}
-      <hr/>
-    {% endfor %}
+  {% include 'core/partials/reports_shifts.html' %}
 
-    <div style="height:100px; width:100%"
-         id="scroll-to-update"
-         hx-target="this"
-         hx-get="{% url 'reports_view' page=2 %}"
-         hx-trigger="intersect threshold:0.5"
-{#         hx-trigger="revealed"#}
-         hx-swap="outerHTML">
-    </div>
-  </div>
 {% endblock %}

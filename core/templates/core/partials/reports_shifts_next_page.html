@@ -1,0 +1,18 @@
+{% for key, value in shift_reports_lists.items %}
+  <h5>{{ key }}</h5>
+  {% for step, reports in value.items %}
+    <div class="col mb-3 p-1">
+      {% include 'core/partials/reports_list.html' with reports=reports %}
+    </div>
+  {% endfor %}
+  <hr/>
+{% endfor %}
+
+<div style="height:100px; width:100%"
+     id="scroll-to-update"
+     hx-target="this"
+     hx-get="{% url 'reports_view' page=page %}"
+     hx-trigger="intersect threshold:0.5"
+     hx-include="[name='user_pk']"
+     hx-swap="outerHTML">
+</div>

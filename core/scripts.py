@@ -6,6 +6,7 @@ from .models import Machine, ReportEntry, Table, Plan, Step, OrderEntry, Report
 
 
 # COMPLETE REFACTOR NEEDED
+# REWORK PAGINATION
 def get_shifts_table(
         from_date=datetime.datetime.today().replace(hour=0, minute=0, second=0) - datetime.timedelta(days=2),
         shifts_count=28):
@@ -74,7 +75,9 @@ def get_leftovers():
     return leftovers
 
 
-def get_reports_view(shifts_count=10, page=1):
+# COMPLETE REFACTOR NEEDED
+# REWORK PAGINATION
+def get_reports_view(shifts_count=100, page=1, user_pk=None):
     # getting close to cur_time based on Table.current_date to correctly sep shifts
     from_date = Table.objects.all()[0].current_date
     cur_time = datetime.datetime.today().replace(hour=0, minute=0, second=0)
@@ -89,8 +92,18 @@ def get_reports_view(shifts_count=10, page=1):
     steps = Step.objects.all()
     shift_reports_lists = {}
     for i in range(len(timestamps) - 1):
-        shift_objs = Report.objects.filter(
-            date__range=(timestamps[i + 1], timestamps[i])).order_by('-date')
+        if not user_pk:
+            shift_objs = Report.objects.filter(
+                date__range=(timestamps[i + 1], timestamps[i])).order_by('-date')
+        elif user_pk == '-1':
+            shift_objs = Report.objects.filter(
+                user__isnull=True,
+                date__range=(timestamps[i + 1], timestamps[i])).order_by('-date')
+            print(shift_objs)
+        else:
+            shift_objs = Report.objects.filter(
+                user_id=user_pk,
+                date__range=(timestamps[i + 1], timestamps[i])).order_by('-date')
         shift_name = str(timestamps[i + 1].strftime('%d.%m')) + (' День' if timestamps[i + 1].hour < 12 else ' Ночь')
         # shift_name += ' ' + str(localtime(timestamps[i + 1])) + '  ' + str(localtime(timestamps[i]))
         if shift_objs:
