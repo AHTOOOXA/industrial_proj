@@ -77,7 +77,7 @@ def get_leftovers():
 
 # COMPLETE REFACTOR NEEDED
 # REWORK PAGINATION
-def get_reports_view(shifts_count=100, page=1, user_pk=None):
+def get_reports_view(shifts_count=10, page=1, user_pk=None):
     # getting close to cur_time based on Table.current_date to correctly sep shifts
     from_date = Table.objects.all()[0].current_date
     cur_time = datetime.datetime.today().replace(hour=0, minute=0, second=0)
