@@ -18,7 +18,7 @@ def get_shifts_table(
             hours=12 * i) for i in range(0, shifts_count)]
     machines = Machine.objects.filter(step=step)
     for i in range(len(timestamps) - 1):
-        row_objs = ReportEntry.objects.filter(
+        row_report_entries = ReportEntry.objects.filter(
             report__date__range=(timestamps[i], timestamps[i + 1]),
             report__step=step)
         if timestamps[i].hour < 12:
@@ -34,16 +34,16 @@ def get_shifts_table(
             'text': txt
         }]
         for machine in machines:
-            objs = row_objs.filter(machine=machine)
-            if objs:
-                cell = {'class': 'done', 'objs': []}
-                for obj in objs:
+            report_entries = row_report_entries.filter(machine=machine)
+            if report_entries:
+                cell = {'class': 'done', 'report_entries': []}
+                for report_entry in report_entries:
                     d = {
-                        'pk': obj.pk,
-                        'detail': obj.detail,
-                        'quantity': obj.quantity,
+                        'pk': report_entry.pk,
+                        'detail': report_entry.detail,
+                        'quantity': report_entry.quantity,
                     }
-                    cell['objs'].append(d)
+                    cell['report_entries'].append(d)
                 row.append(cell)
             else:
                 plan, created = Plan.objects.get_or_create(

@@ -122,19 +122,20 @@
             </td>
           {% else %}
             <td class="{{ cell.class }}">
-              {% for obj in cell.objs %}
-                <div class="{{ obj.detail|get_detail_class }}"
+              {% for report_entry in cell.report_entries %}
+                <div class="{{ report_entry.detail|get_detail_class }}"
                      hx-trigger="click"
                      hx-get='{% url 'report_modal' %}'
                      hx-target="#modals-here"
-                     hx-vals='{"pk": {{ obj.pk }}}'
+                     hx-vals='{"pk": {{ report_entry.pk }}}'
                      data-bs-toggle="modal"
                      data-bs-target="#modals-here">
+                  {{ report_entry.report }}
                   <div class="detail-name">
-                    {{ obj.detail }}
+                    {{ report_entry.detail }}
                   </div>
                   <div class="quantity">
-                    {{ obj.quantity }}
+                    {{ report_entry.quantity }}
                   </div>
                 </div>
               {% endfor %}
