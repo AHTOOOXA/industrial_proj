@@ -1,14 +1,13 @@
 import datetime
 
-from django.utils.timezone import make_naive, make_aware
-from django.utils.timezone import localtime
-from .models import Machine, ReportEntry, Table, Plan, Step, OrderEntry, Report
+from django.utils.timezone import make_aware
+
+from .models import Machine, OrderEntry, Plan, Report, ReportEntry, Step, Table
 
 
 # COMPLETE REFACTOR NEEDED
 # REWORK PAGINATION
 def get_shifts_table(
-        from_date=datetime.datetime.today().replace(hour=0, minute=0, second=0) - datetime.timedelta(days=2),
         shifts_count=28):
     from_date = Table.objects.all()[0].current_date
     step = Table.objects.all()[0].current_step
@@ -22,28 +21,28 @@ def get_shifts_table(
             report__date__range=(timestamps[i], timestamps[i + 1]),
             report__step=step)
         if timestamps[i].hour < 12:
-            txt = str(timestamps[i].strftime('%d.%m')) + ' день'
-            txt = str(timestamps[i].strftime('%d.%m'))
-            cls = 'day'
+            txt = str(timestamps[i].strftime("%d.%m")) + " день"
+            txt = str(timestamps[i].strftime("%d.%m"))
+            cls = "day"
         else:
-            txt = str(timestamps[i].strftime('%d.%m')) + ' ночь'
-            txt = str(timestamps[i].strftime('%d.%m'))
-            cls = 'night'
+            txt = str(timestamps[i].strftime("%d.%m")) + " ночь"
+            txt = str(timestamps[i].strftime("%d.%m"))
+            cls = "night"
         row = [{
-            'class': cls,
-            'text': txt
+            "class": cls,
+            "text": txt
         }]
         for machine in machines:
             report_entries = row_report_entries.filter(machine=machine)
             if report_entries:
-                cell = {'class': 'done', 'report_entries': []}
+                cell = {"class": "done", "report_entries": []}
                 for report_entry in report_entries:
                     d = {
-                        'pk': report_entry.pk,
-                        'detail': report_entry.detail,
-                        'quantity': report_entry.quantity,
+                        "pk": report_entry.pk,
+                        "detail": report_entry.detail,
+                        "quantity": report_entry.quantity,
                     }
-                    cell['report_entries'].append(d)
+                    cell["report_entries"].append(d)
                 row.append(cell)
             else:
                 plan, created = Plan.objects.get_or_create(
@@ -52,8 +51,8 @@ def get_shifts_table(
                     step=step,
                 )
                 cell = {
-                    'class': 'plan',
-                    'plan': plan,
+                    "class": "plan",
+                    "plan": plan,
                 }
                 row.append(cell)
         table.append(row)
@@ -87,24 +86,22 @@ def get_reports_view(shifts_count=10, page=1, user_pk=None):
     from_date += datetime.timedelta(hours=24)
     from_date -= datetime.timedelta(hours=((page - 1) * shifts_count - (page - 1)) * 12)
     timestamps = [from_date - datetime.timedelta(hours=12 * i) for i in range(0, shifts_count)]
-    print(*[localtime(x).strftime("%Y-%m-%dT%H:%M") for x in timestamps])
 
     steps = Step.objects.all()
     shift_reports_lists = {}
     for i in range(len(timestamps) - 1):
         if not user_pk:
             shift_objs = Report.objects.filter(
-                date__range=(timestamps[i + 1], timestamps[i])).order_by('-date')
-        elif user_pk == '-1':
+                date__range=(timestamps[i + 1], timestamps[i])).order_by("-date")
+        elif user_pk == "-1":
             shift_objs = Report.objects.filter(
                 user__isnull=True,
-                date__range=(timestamps[i + 1], timestamps[i])).order_by('-date')
-            print(shift_objs)
+                date__range=(timestamps[i + 1], timestamps[i])).order_by("-date")
         else:
             shift_objs = Report.objects.filter(
                 user_id=user_pk,
-                date__range=(timestamps[i + 1], timestamps[i])).order_by('-date')
-        shift_name = str(timestamps[i + 1].strftime('%d.%m')) + (' День' if timestamps[i + 1].hour < 12 else ' Ночь')
+                date__range=(timestamps[i + 1], timestamps[i])).order_by("-date")
+        shift_name = str(timestamps[i + 1].strftime("%d.%m")) + (" День" if timestamps[i + 1].hour < 12 else " Ночь")
         # shift_name += ' ' + str(localtime(timestamps[i + 1])) + '  ' + str(localtime(timestamps[i]))
         if shift_objs:
             shift_reports_lists[shift_name] = {}

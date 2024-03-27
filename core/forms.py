@@ -1,31 +1,41 @@
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Div, Field, Layout, Submit
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.models import inlineformset_factory
 
-from core.models import User, ReportEntry, Report, OrderEntry, Order, Detail, Machine, Plan, PlanEntry
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Field, Submit, Button, HTML
+from core.models import (
+    Detail,
+    Machine,
+    Order,
+    OrderEntry,
+    Plan,
+    PlanEntry,
+    Report,
+    ReportEntry,
+    User,
+)
 
 
 class Row(Div):
-    css_class = 'row g-3'
+    css_class = "row g-3"
 
 
 class UserCreateAdminForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.form_id = 'user-form'
-        self.helper.add_input(Submit('sumbit', 'Подтвердить'))
+        self.helper.form_id = "user-form"
+        self.helper.add_input(Submit("sumbit", "Подтвердить"))
 
     class Meta:
         model = User
-        fields = ['username', 'password1', 'password2', 'role']
+        fields = ["username", "password1", "password2", "role"]
         labels = {
-            'username': 'Имя пользователя',
-            'password1': 'Пароль',
-            'password2': 'Подтвердите пароль',
-            'role': 'Роль',
+            "username": "Имя пользователя",
+            "password1": "Пароль",
+            "password2": "Подтвердите пароль",
+            "role": "Роль",
         }
 
 
@@ -33,22 +43,22 @@ class ReportForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.form_id = 'report-form'
+        self.helper.form_id = "report-form"
         self.helper.form_tag = False
         self.helper.disable_csrf = True
-        self.fields['order'].queryset = Order.objects.order_by('-date')
+        self.fields["order"].queryset = Order.objects.order_by("-date")
 
     class Meta:
         model = Report
-        fields = ['user', 'date', 'order', 'step']
+        fields = ["user", "date", "order", "step"]
         labels = {
-            'user': 'Пользователь',
-            'date': 'Дата',
-            'order': 'Заказ',
-            'step': 'Этап',
+            "user": "Пользователь",
+            "date": "Дата",
+            "order": "Заказ",
+            "step": "Этап",
         }
         widgets = {
-            'date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            "date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
         }
 
 
@@ -56,25 +66,25 @@ class ReportEntryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.form_id = 'report-entry-form'
+        self.helper.form_id = "report-entry-form"
         self.helper.form_tag = False
         self.helper.disable_csrf = True
         self.helper.render_hidden_fields = True
-        self.fields['detail'].queryset = Detail.objects.order_by('name')
+        self.fields["detail"].queryset = Detail.objects.order_by("name")
         self.helper.layout = Layout(
             Row(
-                Field('machine', wrapper_class='form-group col mb-0',
-                      hx_get='/htmx/machine_options',
+                Field("machine", wrapper_class="form-group col mb-0",
+                      hx_get="/htmx/machine_options",
                       hx_include="[name='step'], closest select",
                       hx_trigger="change from:#id_step, load",
                       ),
-                Field('detail', wrapper_class='form-group col mb-0',
-                      hx_get='/htmx/detail_options',
+                Field("detail", wrapper_class="form-group col mb-0",
+                      hx_get="/htmx/detail_options",
                       hx_include="[name='order'], closest select",
                       hx_trigger="change from:#id_order, load",
                       ),
-                Field('quantity', wrapper_class='form-group col mb-0'),
-                Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
+                Field("quantity", wrapper_class="form-group col mb-0"),
+                Div(Field("DELETE", wrapper_class="form-group col mb-0"), css_class="d-none"),
                 HTML(
                     """
                     <div class="mb-3 form-group col-1 mb-0 mt-4 me-1">
@@ -91,11 +101,11 @@ class ReportEntryForm(forms.ModelForm):
 
     class Meta:
         model = ReportEntry
-        fields = ['machine', 'detail', 'quantity']
+        fields = ["machine", "detail", "quantity"]
         labels = {
-            'machine': 'Станок',
-            'detail': 'Деталь №',
-            'quantity': 'Количество',
+            "machine": "Станок",
+            "detail": "Деталь №",
+            "quantity": "Количество",
         }
 
 
@@ -113,20 +123,20 @@ class OrderForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.form_id = 'order-form'
+        self.helper.form_id = "order-form"
         self.helper.form_tag = False
         self.helper.disable_csrf = True
 
     class Meta:
         model = Order
-        fields = ['name', 'number', 'date']
+        fields = ["name", "number", "date"]
         labels = {
-            'name': 'Название',
-            'number': 'Заказ №',
-            'date': 'Дата',
+            "name": "Название",
+            "number": "Заказ №",
+            "date": "Дата",
         }
         widgets = {
-            'date': forms.DateTimeInput(attrs={'type': 'datetime-local',
+            "date": forms.DateTimeInput(attrs={"type": "datetime-local",
                                                # 'value': datetime.now().strftime("%Y-%m-%dT%H:%M")
                                                })
         }
@@ -136,16 +146,16 @@ class OrderEntryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.form_id = 'order-entry-form'
+        self.helper.form_id = "order-entry-form"
         self.helper.form_tag = False
         self.helper.disable_csrf = True
         self.helper.render_hidden_fields = True
-        self.fields['detail'].queryset = Detail.objects.order_by('name')
+        self.fields["detail"].queryset = Detail.objects.order_by("name")
         self.helper.layout = Layout(
             Row(
-                Field('detail', wrapper_class='form-group col mb-0'),
-                Field('quantity', wrapper_class='form-group col mb-0'),
-                Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
+                Field("detail", wrapper_class="form-group col mb-0"),
+                Field("quantity", wrapper_class="form-group col mb-0"),
+                Div(Field("DELETE", wrapper_class="form-group col mb-0"), css_class="d-none"),
                 HTML(
                     """
                     <div class="mb-3 form-group col-1 mb-0 mt-4 me-1">
@@ -162,10 +172,10 @@ class OrderEntryForm(forms.ModelForm):
 
     class Meta:
         model = OrderEntry
-        fields = ['detail', 'quantity']
+        fields = ["detail", "quantity"]
         labels = {
-            'detail': 'Деталь №',
-            'quantity': 'Количество',
+            "detail": "Деталь №",
+            "quantity": "Количество",
         }
 
 
@@ -183,14 +193,14 @@ class DetailForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.form_id = 'detail-form'
-        self.helper.add_input(Submit('sumbit', 'Подтвердить'))
+        self.helper.form_id = "detail-form"
+        self.helper.add_input(Submit("sumbit", "Подтвердить"))
 
     class Meta:
         model = Detail
-        fields = ['name']
+        fields = ["name"]
         labels = {
-            'name': 'Название',
+            "name": "Название",
         }
 
 
@@ -198,15 +208,15 @@ class MachineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.form_id = 'machine-form'
-        self.helper.add_input(Submit('sumbit', 'Подтвердить'))
+        self.helper.form_id = "machine-form"
+        self.helper.add_input(Submit("sumbit", "Подтвердить"))
 
     class Meta:
         model = Machine
-        fields = ['name', 'step']
+        fields = ["name", "step"]
         labels = {
-            'name': 'Название',
-            'step': 'Этап',
+            "name": "Название",
+            "step": "Этап",
         }
 
 
@@ -239,16 +249,16 @@ class PlanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.form_id = 'order-form'
+        self.helper.form_id = "order-form"
         self.helper.form_tag = False
         self.helper.disable_csrf = True
 
     class Meta:
         model = Plan
-        fields = ['date', 'machine']
+        fields = ["date", "machine"]
         widgets = {
-            'date': forms.HiddenInput(),
-            'machine': forms.HiddenInput(),
+            "date": forms.HiddenInput(),
+            "machine": forms.HiddenInput(),
         }
 
 
@@ -256,16 +266,16 @@ class PlanEntryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-        self.helper.form_id = 'order-entry-form'
+        self.helper.form_id = "order-entry-form"
         self.helper.form_tag = False
         self.helper.disable_csrf = True
         self.helper.render_hidden_fields = True
-        self.fields['detail'].queryset = Detail.objects.order_by('name')
+        self.fields["detail"].queryset = Detail.objects.order_by("name")
         self.helper.layout = Layout(
             Row(
-                Field('detail', wrapper_class='form-group col mb-0'),
-                Field('quantity', wrapper_class='form-group col mb-0'),
-                Div(Field('DELETE', wrapper_class='form-group col mb-0'), css_class='d-none'),
+                Field("detail", wrapper_class="form-group col mb-0"),
+                Field("quantity", wrapper_class="form-group col mb-0"),
+                Div(Field("DELETE", wrapper_class="form-group col mb-0"), css_class="d-none"),
                 HTML(
                     """
                     <div class="mb-3 form-group col-1 mb-0 mt-4 me-3">
@@ -282,10 +292,10 @@ class PlanEntryForm(forms.ModelForm):
 
     class Meta:
         model = PlanEntry
-        fields = ['detail', 'quantity']
+        fields = ["detail", "quantity"]
         labels = {
-            'detail': 'Деталь №',
-            'quantity': 'Количество',
+            "detail": "Деталь №",
+            "quantity": "Количество",
         }
 
 

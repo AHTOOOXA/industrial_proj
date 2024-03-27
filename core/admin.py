@@ -1,17 +1,29 @@
 from django.contrib import admin
-from core.models import User, Machine, Detail, Report, ReportEntry, Order, OrderEntry, Table, Plan, Step
+
+from core.models import (
+    Detail,
+    Machine,
+    Order,
+    OrderEntry,
+    Plan,
+    Report,
+    ReportEntry,
+    Step,
+    Table,
+    User,
+)
 
 
 class ReportEntryAdmin(admin.ModelAdmin):
-    list_display = ['user', 'report', 'machine', 'detail', 'quantity']
+    list_display = ["user", "report", "machine", "detail", "quantity"]
 
 
 class OrderEntryAdmin(admin.ModelAdmin):
-    list_display = ['order', 'detail', 'quantity']
+    list_display = ["order", "detail", "quantity"]
 
 
 class MachineAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name']
+    list_display = ["id", "name"]
 
 
 # Register your models here.

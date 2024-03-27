@@ -1,4 +1,5 @@
 from functools import wraps
+
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 
@@ -9,7 +10,7 @@ def unauthenticated_user(view_func):
         if not request.user.is_authenticated:
             return view_func(request, *args, **kwargs)
         else:
-            return redirect('home')
+            return redirect("home")
 
     return _wrapped_view
 
