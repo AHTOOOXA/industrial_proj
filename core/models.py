@@ -103,6 +103,10 @@ class Order(models.Model):
     def __str__(self):
         return str(self.number)
 
+    @property
+    def in_progress(self):
+        return Report.objects.filter(order=self).exists()
+
 
 class OrderEntry(models.Model):
     order = models.ForeignKey(Order, null=True, on_delete=models.CASCADE)
