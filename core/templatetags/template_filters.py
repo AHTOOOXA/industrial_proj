@@ -13,4 +13,7 @@ def has_role(user, role_name):
 
 @register.filter(name="get_detail_class")
 def get_detail_class(detail):
-    return f"detail-{detail.pk}"
+    if detail:
+        return f"detail-{detail.pk}"
+    else:
+        return ""
