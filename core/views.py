@@ -24,7 +24,6 @@ from .models import (
     Detail,
     Machine,
     Order,
-    OrderEntry,
     Plan,
     Report,
     ReportEntry,
@@ -45,14 +44,10 @@ def home(request):
 def stats(request):
     leftovers = get_leftovers()
 
-    orders = Order.objects.all().order_by("-id")
-    order_entries_leftovers = {}
-    for order_entry in OrderEntry.objects.all():
-        order_entries_leftovers[order_entry.id] = order_entry.quantity
-        for report_entry in ReportEntry.objects.filter(report__order=order_entry.order):
-            order_entries_leftovers[order_entry.id] -= report_entry.quantity
-
-    current_date = Table.objects.all()[0].current_date
+    orders = Order.objects.all().order_by("-id").prefetch_related("orderentry_set",
+                                                                  "orderentry_set__detail",
+                                                                  "report_set")
+    current_date = Table.objects.all().first().current_date
     today = now()
     today = today - datetime.timedelta(days=6)
     today = today.replace(hour=current_date.hour % 12, minute=current_date.minute,
@@ -62,7 +57,6 @@ def stats(request):
     context = {
         "orders": orders,
         "leftovers": leftovers,
-        "order_entries_leftovers": order_entries_leftovers,
         "steps": Step.objects.all(),
         "active_step_pk": active_step_pk,
         "machines": machines,
@@ -106,16 +100,11 @@ def switch_step(request, step):
 def orders_view(request):
     leftovers = get_leftovers()
 
-    orders = Order.objects.all().order_by("-id")
-    order_entries_leftovers = {}
-    for order_entry in OrderEntry.objects.all():
-        order_entries_leftovers[order_entry.id] = order_entry.quantity
-        for report_entry in ReportEntry.objects.filter(report__order=order_entry.order):
-            order_entries_leftovers[order_entry.id] -= report_entry.quantity
+    orders = Order.objects.all().order_by("-id").prefetch_related("orderentry_set", "orderentry_set__detail",
+                                                                  "report_set")
     context = {
         "orders": orders,
         "leftovers": leftovers,
-        "order_entries_leftovers": order_entries_leftovers,
         "steps": Step.objects.all(),
     }
     return render(request, "core/orders.html", context)

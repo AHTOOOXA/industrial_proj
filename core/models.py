@@ -102,7 +102,7 @@ class Order(models.Model):
 
     @property
     def in_progress(self):
-        return Report.objects.filter(order=self).exists()
+        return self.report_set.exists()
 
 
 class OrderEntry(models.Model):
