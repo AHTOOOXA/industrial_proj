@@ -89,19 +89,40 @@
     {% for row in table %}
       <tr>
         {% for cell in row %}
-          {% if cell.text %}
+          {% if cell.class == "day" %}
             <td class="{{ cell.class }}">
               <div>
                 {{ cell.text }}
                 <br/>
-                {% if cell.class == 'day' %}
-                  <i class="bi bi-sun-fill"></i>
-                {% else %}
-                  <i class="bi bi-moon-stars-fill"></i>
-                {% endif %}
+                <i class="bi bi-sun-fill"></i>
               </div>
+              {% elif cell.class == "night" %}
+            <td class="{{ cell.class }}">
+              <div>
+                {{ cell.text }}
+                <br/>
+                <i class="bi bi-moon-stars-fill"></i>
+              </div>
+              {% elif cell.class == "done" %}
+            <td class="{{ cell.class }}">
+              {% for report_entry in cell.report_entries %}
+                <div class="{{ report_entry.detail|get_detail_class }}"
+                     hx-trigger="click"
+                     hx-get='{% url 'report_modal' %}'
+                     hx-target="#modals-here"
+                     hx-vals='{"pk": {{ report_entry.pk }}}'
+                     data-bs-toggle="modal"
+                     data-bs-target="#modals-here">
+                  <div class="detail-name">
+                    {{ report_entry.detail }}
+                  </div>
+                  <div class="quantity">
+                    {{ report_entry.quantity }}
+                  </div>
+                </div>
+              {% endfor %}
             </td>
-          {% elif cell.plan %}
+          {% else %}
             <td class="{{ cell.class }}"
                 hx-trigger="click"
                 hx-get='{% url 'plan_modal' %}'
@@ -116,26 +137,6 @@
                   </div>
                   <div class="quantity">
                     {{ plan_entry.quantity }}
-                  </div>
-                </div>
-              {% endfor %}
-            </td>
-          {% else %}
-            <td class="{{ cell.class }}">
-              {% for report_entry in cell.report_entries %}
-                <div class="{{ report_entry.detail|get_detail_class }}"
-                     hx-trigger="click"
-                     hx-get='{% url 'report_modal' %}'
-                     hx-target="#modals-here"
-                     hx-vals='{"pk": {{ report_entry.pk }}}'
-                     data-bs-toggle="modal"
-                     data-bs-target="#modals-here">
-                  {{ report_entry.report }}
-                  <div class="detail-name">
-                    {{ report_entry.detail }}
-                  </div>
-                  <div class="quantity">
-                    {{ report_entry.quantity }}
                   </div>
                 </div>
               {% endfor %}

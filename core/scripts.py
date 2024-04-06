@@ -1,63 +1,110 @@
 import datetime
 from collections import defaultdict
 
-from django.db.models import Prefetch
+from django.db.models import F, Prefetch
 from django.utils.timezone import make_aware
 
 from .models import Machine, Order, Plan, Report, ReportEntry, Step, Table
 
 
-# COMPLETE REFACTOR NEEDED
-# 400+ SIMILAR SQL QUERIES
-# REWORK PAGINATION
-def get_shifts_table(
-        shifts_count=28):
-    from_date = Table.objects.all().first().current_date
-    step = Table.objects.all().first().current_step
-    table = []
-    timestamps = [
-        from_date + datetime.timedelta(
-            hours=12 * i) for i in range(0, shifts_count)]
-    machines = Machine.objects.filter(step=step)
-    for i in range(len(timestamps) - 1):
-        row_report_entries = ReportEntry.objects.filter(
-            report__date__range=(timestamps[i], timestamps[i + 1]),
-            report__step=step).select_related("detail")  # select because of get_detail_class template tag
-        if timestamps[i].hour < 12:
-            txt = str(timestamps[i].strftime("%d.%m"))
-            cls = "day"
+def get_shift(timestamp: datetime.datetime):
+    shift_start = 3  # should be in UTC
+    shift_end = shift_start + 12
+    hour = timestamp.hour
+    if hour < shift_start:
+        timestamp -= datetime.timedelta(hours=12)
+        return timestamp.replace(hour=shift_end, minute=0, second=0, microsecond=0)
+    elif shift_start <= hour < shift_end:
+        return timestamp.replace(hour=shift_start, minute=0, second=0, microsecond=0)
+    elif hour >= shift_end:
+        return timestamp.replace(hour=shift_end, minute=0, second=0, microsecond=0)
+
+
+class TableCell:
+    def __init__(self, shift=None):
+        self.report_entries = list()
+        self.plan = None
+        self.shift = shift
+
+    def get_display(self):
+        if self.report_entries:
+            return {
+                "class": "done",
+                "report_entries": self.report_entries
+            }
+        elif self.plan:
+            return {
+                "class": "plan",
+                "plan": self.plan
+            }
+        elif self.shift.hour == 3:
+            return {
+                "class": "day",
+                "text": str(self.shift.strftime("%d.%m"))
+            }
         else:
-            txt = str(timestamps[i].strftime("%d.%m"))
-            cls = "night"
-        row = [{
-            "class": cls,
-            "text": txt
-        }]
+            return {
+                "class": "night",
+                "text": str(self.shift.strftime("%d.%m"))
+            }
+
+
+def get_shifts_table(shifts_count=28):
+    # prep and fetching
+    tbl = Table.objects.all().first()
+    from_date, step = tbl.current_date, tbl.current_step
+
+    timestamps = [from_date
+                  + datetime.timedelta(hours=12 * i) for i in range(0, shifts_count)]
+    shifts = [get_shift(timestamp) for timestamp in timestamps]
+    machines = Machine.objects.filter(step=step)
+
+    table_empty_cells = {(shift, machine) for machine in machines for shift in shifts}
+    cell_dict = defaultdict(lambda: defaultdict(lambda: TableCell()))
+
+    # fetching and inserting report_entries
+    report_entries = ReportEntry.objects.filter(
+        report__date__range=(timestamps[0], timestamps[-1]),
+        report__step=step).select_related("detail").prefetch_related("machine").annotate(
+        timestamp=F("report__date")
+    )
+    for report_entry in report_entries:
+        shift = get_shift(report_entry.timestamp)
+        table_empty_cells.discard((shift, report_entry.machine))
+        cell_dict[shift][report_entry.machine].report_entries.append(report_entry)
+
+    # fetching and inserting plans
+    plans = Plan.objects.filter(
+        date__range=(timestamps[0], timestamps[-1]),
+        step=step).select_related("machine").prefetch_related("planentry_set").prefetch_related("planentry_set__detail")
+    for plan in plans:
+        shift = get_shift(plan.date)
+        table_empty_cells.discard((shift, plan.machine))
+        cell_dict[shift][plan.machine].plan = plan
+
+    # --should rewrite to bulk_create
+    # filling empty cells with new Plans
+    for table_empty_cell in table_empty_cells.copy():
+        plan, created = Plan.objects.get_or_create(
+            date=table_empty_cell[0],
+            machine=table_empty_cell[1],
+            step=step
+        ).prefetch_related("planentry_set")
+        shift = get_shift(plan.date)
+        table_empty_cells.discard((shift, plan.machine))
+        cell_dict[shift][table_empty_cell[1]].plan = plan
+
+    # preparing table for template
+    table = []
+    for shift in shifts:
+        row = [
+            TableCell(shift).get_display()
+        ]
         for machine in machines:
-            report_entries = row_report_entries.filter(machine=machine)
-            if report_entries:
-                cell = {"class": "done", "report_entries": []}
-                for report_entry in report_entries:
-                    d = {
-                        "pk": report_entry.pk,
-                        "detail": report_entry.detail,
-                        "quantity": report_entry.quantity,
-                    }
-                    cell["report_entries"].append(d)
-                row.append(cell)
-            else:
-                plan, created = Plan.objects.get_or_create(
-                    machine=machine,
-                    date=timestamps[i],
-                    step=step,
-                )
-                cell = {
-                    "class": "plan",
-                    "plan": plan,
-                }
-                row.append(cell)
+            row.append(cell_dict[shift][machine].get_display())
         table.append(row)
-    return step.pk, machines, table
+
+    return step.id, machines, table
 
 
 def get_leftovers():
