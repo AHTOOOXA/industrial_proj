@@ -57,96 +57,111 @@
       }
   </style>
 {% endblock %}
-<div id="stats-table" class="tableFixHead">
-  <table class="table table-bordered text-center">
-    <colgroup>
-      <col style="width: 70px">
-    </colgroup>
-    <thead>
-    <tr>
-      <th>
-        <div class="btn-group">
-          <a hx-get="{% url 'shift_table' value=-1 %}"
-             hx-swap="outerHTML"
-             hx-target="#stats-table"
-             class="btn-sm btn-dark">
-            <i class="bi bi-arrow-up"></i>
-          </a>
-          <a hx-get="{% url 'shift_table' value=1 %}"
-             hx-swap="outerHTML"
-             hx-target="#stats-table"
-             class="btn-sm btn-dark">
-            <i class="bi bi-arrow-down"></i>
-          </a>
-        </div>
-      </th>
-      {% for machine in machines %}
-        <th scope="col">{{ machine.name }}</th>
-      {% endfor %}
-    </tr>
-    </thead>
-    <tbody>
-    {% for row in table %}
+
+<div class="row justify-content-center mb-3">
+  <div class="col btn-group">
+    {% for step in steps %}
+      <a hx-get="{% url 'switch_step' step=step.pk %}"
+         hx-swap="innerHTML"
+         hx-target="#right-col"
+         class="btn {% if step.pk == active_step_pk %} btn-primary {% else %} btn-secondary {% endif %}">
+        {{ step.name }}
+      </a>
+    {% endfor %}
+  </div>
+</div>
+<div class="row">
+  <div id="stats-table" class="tableFixHead">
+    <table class="table table-bordered text-center">
+      <colgroup>
+        <col style="width: 70px">
+      </colgroup>
+      <thead>
       <tr>
-        {% for cell in row %}
-          {% if cell.class == "day" %}
-            <td class="{{ cell.class }}">
-              <div>
-                {{ cell.text }}
-                <br/>
-                <i class="bi bi-sun-fill"></i>
-              </div>
-              {% elif cell.class == "night" %}
-            <td class="{{ cell.class }}">
-              <div>
-                {{ cell.text }}
-                <br/>
-                <i class="bi bi-moon-stars-fill"></i>
-              </div>
-              {% elif cell.class == "done" %}
-            <td class="{{ cell.class }}">
-              {% for report_entry in cell.report_entries %}
-                <div class="{{ report_entry.detail|get_detail_class }}"
-                     hx-trigger="click"
-                     hx-get='{% url 'report_modal' %}'
-                     hx-target="#modals-here"
-                     hx-vals='{"pk": {{ report_entry.pk }}}'
-                     data-bs-toggle="modal"
-                     data-bs-target="#modals-here">
-                  <div class="detail-name">
-                    {{ report_entry.detail }}
-                  </div>
-                  <div class="quantity">
-                    {{ report_entry.quantity }}
-                  </div>
-                </div>
-              {% endfor %}
-            </td>
-          {% else %}
-            <td class="{{ cell.class }}"
-                hx-trigger="click"
-                hx-get='{% url 'plan_modal' %}'
-                hx-target="#modals-here"
-                hx-vals='{"pk": {{ cell.plan.pk }}}'
-                data-bs-toggle="modal"
-                data-bs-target="#modals-here">
-              {% for plan_entry in cell.plan.planentry_set.all %}
-                <div class={{ plan_entry.detail|get_detail_class }}>
-                  <div class="detail-name">
-                    {{ plan_entry.detail }}
-                  </div>
-                  <div class="quantity">
-                    {{ plan_entry.quantity }}
-                  </div>
-                </div>
-              {% endfor %}
-            </td>
-          {% endif %}
+        <th>
+          <div class="btn-group">
+            <a hx-get="{% url 'shift_table' value=-1 %}"
+               hx-swap="outerHTML"
+               hx-target="#stats-table"
+               class="btn-sm btn-dark">
+              <i class="bi bi-arrow-up"></i>
+            </a>
+            <a hx-get="{% url 'shift_table' value=1 %}"
+               hx-swap="outerHTML"
+               hx-target="#stats-table"
+               class="btn-sm btn-dark">
+              <i class="bi bi-arrow-down"></i>
+            </a>
+          </div>
+        </th>
+        {% for machine in machines %}
+          <th scope="col">{{ machine.name }}</th>
         {% endfor %}
       </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+      {% for row in table %}
+        <tr>
+          {% for cell in row %}
+            {% if cell.class == "day" %}
+              <td class="{{ cell.class }}">
+                <div>
+                  {{ cell.text }}
+                  <br/>
+                  <i class="bi bi-sun-fill"></i>
+                </div>
+                {% elif cell.class == "night" %}
+              <td class="{{ cell.class }}">
+                <div>
+                  {{ cell.text }}
+                  <br/>
+                  <i class="bi bi-moon-stars-fill"></i>
+                </div>
+                {% elif cell.class == "done" %}
+              <td class="{{ cell.class }}">
+                {% for report_entry in cell.report_entries %}
+                  <div class="{{ report_entry.detail|get_detail_class }}"
+                       hx-trigger="click"
+                       hx-get='{% url 'report_modal' %}'
+                       hx-target="#modals-here"
+                       hx-vals='{"pk": {{ report_entry.pk }}}'
+                       data-bs-toggle="modal"
+                       data-bs-target="#modals-here">
+                    <div class="detail-name">
+                      {{ report_entry.detail }}
+                    </div>
+                    <div class="quantity">
+                      {{ report_entry.quantity }}
+                    </div>
+                  </div>
+                {% endfor %}
+              </td>
+            {% else %}
+              <td class="{{ cell.class }}"
+                  hx-trigger="click"
+                  hx-get='{% url 'plan_modal' %}'
+                  hx-target="#modals-here"
+                  hx-vals='{"pk": {{ cell.plan.pk }}}'
+                  data-bs-toggle="modal"
+                  data-bs-target="#modals-here">
+                {% for plan_entry in cell.plan.planentry_set.all %}
+                  <div class={{ plan_entry.detail|get_detail_class }}>
+                    <div class="detail-name">
+                      {{ plan_entry.detail }}
+                    </div>
+                    <div class="quantity">
+                      {{ plan_entry.quantity }}
+                    </div>
+                  </div>
+                {% endfor %}
+              </td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 {% block scripts %}

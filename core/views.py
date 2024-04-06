@@ -92,7 +92,7 @@ def switch_step(request, step):
         "machines": machines,
         "table": table
     }
-    return render(request, "core/partials/right_col.html", context)
+    return render(request, "core/partials/table.html", context)
 
 
 @login_required(login_url="login_user")
