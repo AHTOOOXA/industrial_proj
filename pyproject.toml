@@ -1,5 +1,5 @@
 [tool.ruff]
 select = ["F", "E", "W", "C90",
           "I", "N", "S", "B", "A",
-          "ISC", "T20", "Q", "PTH"]
+          "ISC", "T20", "Q", "PTH", "DJ"]
 ignore = ["A003", "E501", "E741", "N806"]
