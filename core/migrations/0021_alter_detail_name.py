@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 def unite_detail_duplicates(apps, schema_editor):
     from core.models import Detail
-    from collections import Counter
 
     details = Detail.objects.all()
 
