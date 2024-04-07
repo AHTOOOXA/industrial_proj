@@ -37,7 +37,9 @@
 <div class="scrollable" id="orders-list">
   {% for order in orders %}
     <div class="card mb-1" id="order-card">
-      <div class="card-header p-2" {% if order.in_progress %} style="background-color: lightblue" {% endif %}>
+      <div class="card-header p-2" {% if not order.is_active %}
+           style="background-color: rosybrown" {% elif order.in_progress %}
+           style="background-color: lightblue" {% endif %}>
         <div class="row">
           <div class="col-auto ms-0 align-self-center">
             {{ order.name }} <b>№ {{ order.number }}</b>
@@ -46,19 +48,44 @@
             {{ order.date|date:'d.m.y H:i' }}
           </div>
           <div class="col-auto ms-auto">
-            <div class="btn-group btn-group-sm">
-              <a class="btn btn-secondary" type="button" href="{% url 'orders_edit' order.pk %}">
-                <i class="bi bi-pencil-fill"></i>
-              </a>
-              <button class="btn btn-danger"
-                      type="button"
-                      hx-post="{% url 'orders_delete' order.pk %}"
-                      hx-target="closest #order-card"
-                      hx-swap="outerHTML"
-                      hx-trigger="click"
-                      hx-confirm="Вы уверены что вы хотите удалить {{ order.name }} #{{ order.number }}">
-                <i class="bi bi-trash-fill"></i>
-              </button>
+            <div class="row">
+              <div class="col btn-group btn-group-sm">
+                {% if order.is_active %}
+                  <a class="btn-primary btn-sm" type="button"
+                     hx-post="{% url 'orders_set_inactive' order.pk %}"
+                     hx-target="closest #order-card"
+                     hx-swap="outerHTML"
+                     hx-trigger="click"
+                     hx-confirm="Вы уверены что вы хотите завершить заказ {{ order.name }} #{{ order.number }}">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                  </a>
+                {% else %}
+                  <a class="btn-dark btn-sm" type="button"
+                     hx-post="{% url 'orders_set_active' order.pk %}"
+                     hx-target="closest #order-card"
+                     hx-swap="outerHTML"
+                     hx-trigger="click"
+                     hx-confirm="Вы уверены что хотите восстановить заказ {{ order.name }} #{{ order.number }}">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                  </a>
+                {% endif %}
+              </div>
+              <div class="col">
+                <div class="btn-group btn-group-sm">
+                  <a class="btn btn-secondary" type="button" href="{% url 'orders_edit' order.pk %}">
+                    <i class="bi bi-pencil-fill"></i>
+                  </a>
+                  <button class="btn btn-danger"
+                          type="button"
+                          hx-post="{% url 'orders_delete' order.pk %}"
+                          hx-target="closest #order-card"
+                          hx-swap="outerHTML"
+                          hx-trigger="click"
+                          hx-confirm="Вы уверены что вы хотите удалить {{ order.name }} #{{ order.number }}">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

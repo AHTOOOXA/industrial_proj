@@ -1,16 +1,80 @@
 {% extends 'core/base.html' %}
+{% load partials %}
+
+{% partialdef order-button-active %}
+  <a id="switch-button"
+     hx-swap-oob="true"
+     class="btn btn-dark"
+     type="button"
+     hx-get="{% url 'orders_view_inactive' %}"
+     hx-target="#orders-list"
+     hx-swap="outerHTML">
+      Архив
+    <i class="bi bi-clipboard-check-fill"></i>
+  </a>
+{% endpartialdef %}
+
+{% partialdef order-button-inactive %}
+  <a id="switch-button"
+     hx-swap-oob="true"
+     class="btn btn-primary"
+     type="button"
+     hx-get="{% url 'orders_view_active' %}"
+     hx-target="#orders-list"
+     hx-swap="outerHTML">
+      Активные
+    <i class="bi bi-clipboard-check-fill"></i>
+  </a>
+{% endpartialdef %}
 
 {% block content %}
+  <div class="row justify-content-center mb-3">
+    <div class="row p-0">
+      <div class="col-3"></div>
+      <div class="col-6 align-content-center">
+        <div class="d-grid gap-3">
+          <a class="btn btn-success"
+             type="button"
+             href="{% url 'orders_add' %}">
+            Создать заказ
+          </a>
+        </div>
+      </div>
+      <div class="col-3 align-content-center">
+        <div class="d-grid gap-3" x-data="{ state: 'active' }">
+          {% partial order-button-active %}
+
+{#          {% include 'core/partials/orders_switch_button.html' %}#}
+
+          {#          <a id="switch-button"#}
+          {#             class="btn btn-dark"#}
+          {#             type="button"#}
+          {#             @click="state = state === 'active' ? 'inactive' : 'active'"#}
+          {#             x-show="state === 'active'"#}
+          {#             hx-get="{% url 'orders_view_inactive' %}"#}
+          {#             hx-target="#orders-list">#}
+          {#            Архив#}
+          {#            <i class="bi bi-clipboard-check-fill"></i>#}
+          {#          </a>#}
+          {#          <a id="switch-button"#}
+          {#             class="btn btn-primary"#}
+          {#             type="button"#}
+          {#             @click="state = state === 'active' ? 'inactive' : 'active'"#}
+          {#             x-show="state === 'inactive'"#}
+          {#             hx-get="{% url 'orders_view_inactive' %}"#}
+          {#             hx-target="#orders-list"#}
+          {#             style="display: none">#}
+          {#            Активные заказы#}
+          {#            <i class="bi bi-clipboard-check-fill"></i>#}
+          {#          </a>#}
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row justify-content-center">
     <div class="col-12 align-content-center">
       <div class="d-grid gap-3">
-
-        <a class="btn btn-success"
-           type="button"
-           href="{% url 'orders_add' %}">
-          Создать заказ
-        </a>
-
         {% include 'core/partials/orders_list.html' %}
       </div>
     </div>

@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.utils.timezone import make_naive, now
 
 from core.forms import (
@@ -44,7 +45,7 @@ def home(request):
 def stats(request):
     leftovers = get_leftovers()
 
-    orders = Order.objects.all().order_by("-id").prefetch_related("orderentry_set",
+    orders = Order.objects.filter(is_active=True).order_by("-id").prefetch_related("orderentry_set",
                                                                   "orderentry_set__detail",
                                                                   "report_set")
     current_date = Table.objects.all().first().current_date
@@ -63,6 +64,46 @@ def stats(request):
         "table": table
     }
     return render(request, "core/stats.html", context)
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def stats_orders_view_active(request):
+    leftovers = get_leftovers()
+
+    orders = Order.objects.all().filter(is_active=True).order_by("-id").prefetch_related("orderentry_set",
+                                                                                          "orderentry_set__detail",
+                                                                                          "report_set")
+    context = {
+        "orders": orders,
+        "leftovers": leftovers,
+        "steps": Step.objects.all(),
+    }
+    return HttpResponse(
+        render_to_string("core/stats.html#order-button-sm-active")
+        + (render_to_string("core/partials/orders_list.html",
+                            context))
+    )
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def stats_orders_view_inactive(request):
+    leftovers = get_leftovers()
+
+    orders = Order.objects.all().filter(is_active=False).order_by("-id").prefetch_related("orderentry_set",
+                                                                                          "orderentry_set__detail",
+                                                                                          "report_set")
+    context = {
+        "orders": orders,
+        "leftovers": leftovers,
+        "steps": Step.objects.all(),
+    }
+    return HttpResponse(
+        render_to_string("core/stats.html#order-button-sm-inactive")
+        + (render_to_string("core/partials/orders_list.html",
+                            context))
+    )
 
 
 @login_required(login_url="login_user")
@@ -100,14 +141,55 @@ def switch_step(request, step):
 def orders_view(request):
     leftovers = get_leftovers()
 
-    orders = Order.objects.all().order_by("-id").prefetch_related("orderentry_set", "orderentry_set__detail",
-                                                                  "report_set")
+    orders = Order.objects.all().filter(is_active=True).order_by("-id").prefetch_related("orderentry_set",
+                                                                                         "orderentry_set__detail",
+                                                                                         "report_set")
     context = {
         "orders": orders,
         "leftovers": leftovers,
         "steps": Step.objects.all(),
     }
     return render(request, "core/orders.html", context)
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def orders_view_active(request):
+    leftovers = get_leftovers()
+
+    orders = Order.objects.all().filter(is_active=True).order_by("-id").prefetch_related("orderentry_set",
+                                                                                          "orderentry_set__detail",
+                                                                                          "report_set")
+    context = {
+        "orders": orders,
+        "leftovers": leftovers,
+        "steps": Step.objects.all(),
+    }
+    return HttpResponse(
+        render_to_string("core/orders.html#order-button-active")
+        + (render_to_string("core/partials/orders_list.html",
+                            context))
+    )
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def orders_view_inactive(request):
+    leftovers = get_leftovers()
+
+    orders = Order.objects.all().filter(is_active=False).order_by("-id").prefetch_related("orderentry_set",
+                                                                                          "orderentry_set__detail",
+                                                                                          "report_set")
+    context = {
+        "orders": orders,
+        "leftovers": leftovers,
+        "steps": Step.objects.all(),
+    }
+    return HttpResponse(
+        render_to_string("core/orders.html#order-button-inactive")
+        + (render_to_string("core/partials/orders_list.html",
+                            context))
+    )
 
 
 @login_required(login_url="login_user")
@@ -132,6 +214,24 @@ def orders_add(request):
                 for entry_form in entry_formset:
                     entry_form.save()
         return redirect("stats")
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def orders_set_active(request, pk):
+    order = Order.objects.get(pk=pk)
+    order.is_active = True
+    order.save()
+    return HttpResponse("")
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def orders_set_inactive(request, pk):
+    order = Order.objects.get(pk=pk)
+    order.is_active = False
+    order.save()
+    return HttpResponse("")
 
 
 @login_required(login_url="login_user")

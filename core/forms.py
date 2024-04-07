@@ -46,7 +46,7 @@ class ReportForm(forms.ModelForm):
         self.helper.form_id = "report-form"
         self.helper.form_tag = False
         self.helper.disable_csrf = True
-        self.fields["order"].queryset = Order.objects.order_by("-date")
+        self.fields["order"].queryset = Order.objects.filter(is_active=True).order_by("-date")
 
     class Meta:
         model = Report
