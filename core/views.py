@@ -32,7 +32,7 @@ from .models import (
     Table,
     User,
 )
-from .scripts import get_leftovers, get_reports_view, get_shifts_table
+from .scripts import get_orders_display, get_reports_view, get_shifts_table
 
 
 @login_required(login_url="login_user")
@@ -43,7 +43,7 @@ def home(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def stats(request):
-    steps, orders, leftovers = get_leftovers(is_active=True)
+    steps, orders, leftovers = get_orders_display(is_active=True)
 
     current_date = Table.objects.all().first().current_date
     today = now()
@@ -66,7 +66,7 @@ def stats(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def stats_orders_view_active(request):
-    steps, orders, leftovers = get_leftovers(is_active=True)
+    steps, orders, leftovers = get_orders_display(is_active=True)
     context = {
         "orders": orders,
         "leftovers": leftovers,
@@ -82,7 +82,7 @@ def stats_orders_view_active(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def stats_orders_view_inactive(request):
-    steps, orders, leftovers = get_leftovers(is_active=False)
+    steps, orders, leftovers = get_orders_display(is_active=False)
     context = {
         "orders": orders,
         "leftovers": leftovers,
@@ -128,7 +128,7 @@ def switch_step(request, step):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def orders_view(request):
-    steps, orders, leftovers = get_leftovers(is_active=True)
+    steps, orders, leftovers = get_orders_display(is_active=True)
     context = {
         "orders": orders,
         "leftovers": leftovers,
@@ -140,7 +140,7 @@ def orders_view(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def orders_view_active(request):
-    steps, orders, leftovers = get_leftovers(is_active=True)
+    steps, orders, leftovers = get_orders_display(is_active=True)
     context = {
         "orders": orders,
         "leftovers": leftovers,
@@ -156,7 +156,7 @@ def orders_view_active(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def orders_view_inactive(request):
-    steps, orders, leftovers = get_leftovers(is_active=True)
+    steps, orders, leftovers = get_orders_display(is_active=True)
     context = {
         "orders": orders,
         "leftovers": leftovers,
