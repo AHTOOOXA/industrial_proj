@@ -107,22 +107,21 @@ def get_shifts_table(shifts_count=28):
     return step.id, machines, table
 
 
-def get_leftovers():
-    steps = Step.objects.all()
-
-    orders = Order.objects.prefetch_related(
+def get_orders_display(is_active=True):
+    steps = Step.objects.all().order_by("id")
+    orders = Order.objects.filter(is_active=is_active).order_by("-id").prefetch_related(
         "orderentry_set",
+        "orderentry_set__detail",
+        "report_set",
         Prefetch(
             "report_set",
             queryset=Report.objects.prefetch_related(
                 "reportentry_set"
             ).select_related("step"),
             to_attr="prefetched_reports"
-        )
-    )
+        ))
 
     leftovers = defaultdict(lambda: defaultdict(int))
-
     for order in orders:
         for order_entry in order.orderentry_set.all():
             for step in steps:
@@ -135,7 +134,7 @@ def get_leftovers():
                 )
                 leftovers[step.pk][order_entry.pk] = -order_entry.quantity + total_quantity_reported
 
-    return leftovers
+    return steps, orders, leftovers
 
 
 # COMPLETE REFACTOR NEEDED
