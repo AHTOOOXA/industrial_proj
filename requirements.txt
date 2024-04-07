@@ -3,3 +3,5 @@ django-extensions==3.2.1
 django-crispy-forms~=2.1
 crispy-bootstrap5
 django-htmx
+django-dbbackup
+django-template-partials
