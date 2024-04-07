@@ -85,11 +85,11 @@ def get_shifts_table(shifts_count=28):
     # --should rewrite to bulk_create
     # filling empty cells with new Plans
     for table_empty_cell in table_empty_cells.copy():
-        plan, created = Plan.objects.get_or_create(
+        plan, created = Plan.objects.prefetch_related("planentry_set").get_or_create(
             date=table_empty_cell[0],
             machine=table_empty_cell[1],
             step=step
-        ).prefetch_related("planentry_set")
+        )
         shift = get_shift(plan.date)
         table_empty_cells.discard((shift, plan.machine))
         cell_dict[shift][table_empty_cell[1]].plan = plan
