@@ -31,14 +31,16 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "django_htmx",
     "dbbackup",
+    "template_partials",
+    "debug_toolbar",
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
-DBBACKUP_STORAGE_OPTIONS = {'location': 'backup'}
+DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
+DBBACKUP_STORAGE_OPTIONS = {"location": "backup"}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
