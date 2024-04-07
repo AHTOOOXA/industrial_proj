@@ -32,7 +32,6 @@ INSTALLED_APPS = [
     "django_htmx",
     "dbbackup",
     "template_partials",
-    "debug_toolbar",
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -130,9 +129,3 @@ MESSAGE_TAGS = {
 }
 
 STATICFILES_DIRS = [BASE_DIR / "static"]
-
-INTERNAL_IPS = [
-    # ...
-    "127.0.0.1",
-    # ...
-]
