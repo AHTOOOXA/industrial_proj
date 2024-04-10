@@ -41,32 +41,8 @@
         </div>
       </div>
       <div class="col-3 align-content-center">
-        <div class="d-grid gap-3" x-data="{ state: 'active' }">
+        <div class="d-grid gap-3">
           {% partial order-button-active %}
-
-{#          {% include 'core/partials/orders_switch_button.html' %}#}
-
-          {#          <a id="switch-button"#}
-          {#             class="btn btn-dark"#}
-          {#             type="button"#}
-          {#             @click="state = state === 'active' ? 'inactive' : 'active'"#}
-          {#             x-show="state === 'active'"#}
-          {#             hx-get="{% url 'orders_view_inactive' %}"#}
-          {#             hx-target="#orders-list">#}
-          {#            Архив#}
-          {#            <i class="bi bi-clipboard-check-fill"></i>#}
-          {#          </a>#}
-          {#          <a id="switch-button"#}
-          {#             class="btn btn-primary"#}
-          {#             type="button"#}
-          {#             @click="state = state === 'active' ? 'inactive' : 'active'"#}
-          {#             x-show="state === 'inactive'"#}
-          {#             hx-get="{% url 'orders_view_inactive' %}"#}
-          {#             hx-target="#orders-list"#}
-          {#             style="display: none">#}
-          {#            Активные заказы#}
-          {#            <i class="bi bi-clipboard-check-fill"></i>#}
-          {#          </a>#}
         </div>
       </div>
     </div>
