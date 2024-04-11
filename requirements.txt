@@ -5,3 +5,4 @@ crispy-bootstrap5
 django-htmx
 django-dbbackup
 django-template-partials
+psycopg2-binary
