@@ -4,7 +4,7 @@ from core.models import Detail
 
 
 class Command(BaseCommand):
-    help = 'Merge detail duplicates'
+    help = "Merge detail duplicates"
 
     def handle(self, *args, **options):
         details = Detail.objects.all()

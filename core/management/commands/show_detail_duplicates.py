@@ -1,9 +1,10 @@
 from django.core.management.base import BaseCommand
+
 from core.models import Detail
 
 
 class Command(BaseCommand):
-    help = 'Show detail duplicates'
+    help = "Show detail duplicates"
 
     def handle(self, *args, **options):
         details = Detail.objects.all()

@@ -156,7 +156,7 @@ def orders_view_active(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def orders_view_inactive(request):
-    steps, orders, leftovers = get_orders_display(is_active=True)
+    steps, orders, leftovers = get_orders_display(is_active=False)
     context = {
         "orders": orders,
         "leftovers": leftovers,
