@@ -6,3 +6,4 @@ django-htmx
 django-dbbackup
 django-template-partials
 psycopg2-binary
+Faker~=24.11.0
