@@ -27,13 +27,21 @@
       body {
           padding-top: 65px;
       }
+
+      .indicator-style {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          margin-left: -50px;
+          margin-top: -50px;
+      }
   </style>
 
   {% block extra_head %}
 
   {% endblock %}
 </head>
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-indicator="#spinner">
 {% include 'core/navbar.html' %}
 <main class="container-fluid">
   {% if messages %}
@@ -52,6 +60,26 @@
   <div id="htmx-none"></div>
 </main>
 
+<div id="spinner" class="htmx-indicator indicator-style d-flex flex-column align-items-center justify-content-center">
+  <div class="row">
+    <div class="spinner-border"></div>
+  </div>
+  <div class="row">
+    <strong>Загрузка...</strong>
+  </div>
+</div>
+
+<script>
+    document.body.addEventListener('htmx:beforeRequest', function (evt) {
+        const body = document.getElementsByTagName('main')[0]
+        body.style.opacity = 0.25
+    });
+
+    document.body.addEventListener('htmx:afterRequest', function (evt) {
+        const body = document.getElementsByTagName('main')[0]
+        body.style.opacity = 1.0
+    });
+</script>
 
 {% block scripts %}
 
