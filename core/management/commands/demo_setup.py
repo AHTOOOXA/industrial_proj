@@ -35,7 +35,7 @@ class Command(BaseCommand):
 
         # Create random machines for each step
         for step in Step.objects.all():
-            for _ in range(random.randint(4, 6)):
+            for _ in range(4):
                 Machine.objects.create(
                     name=f"Станок {_}",
                     step=step,

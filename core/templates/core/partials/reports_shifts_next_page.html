@@ -1,7 +1,7 @@
 {% for key, value in shift_reports_lists.items %}
   <h5>{{ key }}</h5>
   {% for step, reports in value.items %}
-    <div class="col mb-3 p-1">
+    <div class="col-3 mb-3 p-1">
       {% include 'core/partials/reports_list.html' with reports=reports %}
     </div>
   {% endfor %}
