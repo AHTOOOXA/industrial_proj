@@ -1,36 +1,37 @@
 {% block extra_head %}
-<style>
-    .report-table {
-        {#font-weight: bold;#}
-        font-size: 14px;
-    }
-</style>
+  <style>
+      .report-table {
+          font-size: 12px;
+      }
+  </style>
 {% endblock %}
 
 
 <div id="report-entries-list-{{ report.pk }}">
-  <table class="table report-table table-bordered bg-white mb-0">
-    <thead>
-    <tr>
-      <th class="text-center" scope="col">Станок</th>
-      <th class="text-center" scope="col">Деталь</th>
-      <th class="text-center" scope="col">Количество</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for report_entry in report.reportentry_set.all %}
+  <div class="table-responsive">
+    <table class="table report-table table-bordered bg-white mb-0">
+      <thead>
       <tr>
-        <td class="text-center">
-          {{ report_entry.machine }}
-        </td>
-        <td class="text-center">
-          {{ report_entry.detail }}
-        </td>
-        <td class="text-center">
-          {{ report_entry.quantity }}
-        </td>
+        <th class="text-center" scope="col">Станок</th>
+        <th class="text-center" scope="col">Деталь</th>
+        <th class="text-center" scope="col">Кол.</th>
       </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+      {% for report_entry in report.reportentry_set.all %}
+        <tr>
+          <td class="text-center">
+            {{ report_entry.machine }}
+          </td>
+          <td class="text-center">
+            {{ report_entry.detail }}
+          </td>
+          <td class="text-center">
+            {{ report_entry.quantity }}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
