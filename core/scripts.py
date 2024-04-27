@@ -27,6 +27,12 @@ class TableCell:
         self.shift = shift
 
     def get_display(self):
+        if self.report_entries and self.plan:
+            return {
+                "class": "done-plan",
+                "report_entries": self.report_entries,
+                "plan": self.plan
+            }
         if self.report_entries:
             return {
                 "class": "done",

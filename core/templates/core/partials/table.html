@@ -69,6 +69,9 @@
       </a>
     {% endfor %}
   </div>
+  <button class="col-auto btn btn-warning me-3" onclick="toggleDoneElements()">
+    Планы/Отчеты + планы
+  </button>
 </div>
 <div class="row">
   <div id="stats-table" class="tableFixHead">
@@ -110,14 +113,16 @@
                   <br/>
                   <i class="bi bi-sun-fill"></i>
                 </div>
-                {% elif cell.class == "night" %}
+              </td>
+            {% elif cell.class == "night" %}
               <td class="{{ cell.class }}">
                 <div>
                   {{ cell.text }}
                   <br/>
                   <i class="bi bi-moon-stars-fill"></i>
                 </div>
-                {% elif cell.class == "done" %}
+              </td>
+            {% elif cell.class == "done" %}
               <td class="{{ cell.class }}">
                 {% for report_entry in cell.report_entries %}
                   <div class="{{ report_entry.detail|get_detail_class }}"
@@ -136,8 +141,45 @@
                   </div>
                 {% endfor %}
               </td>
-            {% else %}
+            {% elif cell.class == "plan" %}
               <td class="{{ cell.class }}"
+                  hx-trigger="click"
+                  hx-get='{% url 'plan_modal' %}'
+                  hx-target="#modals-here"
+                  hx-vals='{"pk": {{ cell.plan.pk }}}'
+                  data-bs-toggle="modal"
+                  data-bs-target="#modals-here">
+                {% for plan_entry in cell.plan.planentry_set.all %}
+                  <div class={{ plan_entry.detail|get_detail_class }}>
+                    <div class="detail-name">
+                      {{ plan_entry.detail }}
+                    </div>
+                    <div class="quantity">
+                      {{ plan_entry.quantity }}
+                    </div>
+                  </div>
+                {% endfor %}
+              </td>
+            {% else %}
+              <td class="done done-plan">
+                {% for report_entry in cell.report_entries %}
+                  <div class="{{ report_entry.detail|get_detail_class }}"
+                       hx-trigger="click"
+                       hx-get='{% url 'report_modal' %}'
+                       hx-target="#modals-here"
+                       hx-vals='{"pk": {{ report_entry.pk }}}'
+                       data-bs-toggle="modal"
+                       data-bs-target="#modals-here">
+                    <div class="detail-name">
+                      {{ report_entry.detail }}
+                    </div>
+                    <div class="quantity">
+                      {{ report_entry.quantity }}
+                    </div>
+                  </div>
+                {% endfor %}
+              </td>
+              <td class="plan done-plan" style="display: none"
                   hx-trigger="click"
                   hx-get='{% url 'plan_modal' %}'
                   hx-target="#modals-here"
@@ -175,5 +217,12 @@
       }
       const el = document.getElementById('stats-table');
       el.scrollTop = totalHeight;
+
+      function toggleDoneElements() {
+          const doneElements = document.querySelectorAll('.done-plan');
+          doneElements.forEach(element => {
+              element.style.display = element.style.display === 'none' ? '' : 'none';
+          });
+      }
   </script>
 {% endblock %}
