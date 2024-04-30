@@ -22,6 +22,7 @@ urlpatterns = [
     path("htmx/plan_modal", views.plan_modal, name="plan_modal"),
     path("stats/shift_table/<slug:value>", views.shift_table, name="shift_table"),
     path("stats/switch_step/<int:step>", views.switch_step, name="switch_step"),
+    path("stats/drag_n_drop", views.stats_plan_drag_n_drop, name="drag_n_drop"),
     path("orders", views.orders_view, name="orders_view"),
     path("orders/active", views.orders_view_active, name="orders_view_active"),
     path("orders/inactive", views.orders_view_inactive, name="orders_view_inactive"),

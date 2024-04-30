@@ -26,13 +26,14 @@ from .models import (
     Machine,
     Order,
     Plan,
+    PlanEntry,
     Report,
     ReportEntry,
     Step,
     Table,
     User,
 )
-from .scripts import get_orders_display, get_reports_view, get_shifts_table
+from .scripts import TableCell, get_orders_display, get_reports_view, get_shifts_table
 
 
 @login_required(login_url="login_user")
@@ -102,12 +103,14 @@ def shift_table(request, value):
     new_date = current_date + int(value) * datetime.timedelta(hours=12)
     Table.objects.all().update(current_date=new_date)
 
-    _, machines, table = get_shifts_table()
+    active_step_pk, machines, table = get_shifts_table()
     context = {
+        "steps": Step.objects.all(),
+        "active_step_pk": active_step_pk,
         "machines": machines,
         "table": table
     }
-    return render(request, "core/partials/table.html", context)
+    return render(request, "core/stats.html#table", context)
 
 
 @login_required(login_url="login_user")
@@ -122,7 +125,29 @@ def switch_step(request, step):
         "machines": machines,
         "table": table
     }
-    return render(request, "core/partials/table.html", context)
+    response = render(request, "core/stats.html#table", context)
+    response["HX-Trigger-After-Settle"] = "scroll-table"
+    return response
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def stats_plan_drag_n_drop(request):
+    detail_id = request.POST.get("detail_id")
+    order_id = request.POST.get("order_id")
+    plan_id = request.POST.get("plan_id")
+
+    plan = Plan.objects.get(id=plan_id)
+    plan_entry = PlanEntry(plan=plan,
+                           detail_id=detail_id,
+                           quantity=350).save()
+    cell = TableCell()
+    cell.plan = plan
+    context = {
+        "cell": cell.get_display()
+    }
+    response = render(request, "core/stats.html#plan_cell_inner", context)
+    return response
 
 
 @login_required(login_url="login_user")
