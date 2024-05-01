@@ -211,7 +211,11 @@
     </div>
   </div>
   <div class="row"
-       x-data="{ highlight: '', detail_id_drag: '', order_id_drag: '', plan_entry_id_drag: '', plans_only: false }">
+       x-data="{ highlight: '', detail_id_drag: '', order_id_drag: '', plan_entry_id_drag: '', plans_only: false }"
+       {# адский костыль для того чтобы стейт альпины не тупил #}
+       @htmx:after-swap.window="plans_only = !plans_only;"
+       @htmx:after-settle.window="plans_only = !plans_only;"
+  >
     <div class="col-4 p-1">
       <div class="row">
         <div class="col">
@@ -350,13 +354,11 @@
           for (let i = 0; i < 10 && i < trElements.length; i++) {
               const trElement = trElements[i];
               totalHeight += trElement.clientHeight;
-              console.log(trElement.clientHeight, trElement);
               totalHeight += 2;
           }
           const el = document.getElementById('stats-table-inner');
           el.scrollTop = totalHeight;
       }
-      
       scroll()
       document.addEventListener('DOMContentLoaded', (event) => {
           scroll();
