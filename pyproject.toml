@@ -1,4 +1,7 @@
 [tool.ruff]
+exclude = [
+    "migrations",
+]
 select = ["F", "E", "W", "C90",
           "I", "N", "S", "B", "A",
           "ISC", "T20", "Q", "PTH", "DJ"]

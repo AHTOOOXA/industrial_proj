@@ -110,13 +110,13 @@
               </thead>
               <tbody>
               {% for order_entry in order.orderentry_set.all %}
-                <tr x-data="{ adding: false, removing: false }"
-                    @click="highlight = '{{ order }} {{ order_entry.detail }}' === highlight ? '' : '{{ order }} {{ order_entry.detail }}'"
+                <tr @click="highlight = '{{ order }} {{ order_entry.detail }}' === highlight ? '' : '{{ order }} {{ order_entry.detail }}'"
                     :class="highlight === '{{ order }} {{ order_entry.detail }}' ? 'highlight' : ''"
                     @dragstart.self="
+                        drag_type = 'order_to_plan';
                         detail_id_drag = {{ order_entry.detail_id }};
                         order_id_drag = {{ order.pk }};
-                        console.log(detail_id_drag, order_id_drag);
+                        console.log(drag_type, detail_id_drag, order_id_drag);
                     "
                     draggable="true"
                 >

@@ -5,18 +5,31 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from faker import Faker
 
-from core.models import User, Step, Machine, Detail, Order, OrderEntry, Report, ReportEntry, Plan, PlanEntry, Table
+from core.models import (
+    Detail,
+    Machine,
+    Order,
+    OrderEntry,
+    Plan,
+    PlanEntry,
+    Report,
+    ReportEntry,
+    Step,
+    Table,
+    User,
+)
 
 
+# needs fixes
 class Command(BaseCommand):
-    help = 'Generate random demo data'
+    help = "Generate random demo data"
 
     def handle(self, *args, **options):
         faker = Faker()
 
         User.objects.create_superuser(
-            username='admin',
-            password='admin',
+            username="admin",
+            password="admin",
             role=User.Role.ADMIN,
         )
 
@@ -26,7 +39,7 @@ class Command(BaseCommand):
                 username=faker.unique.last_name(),
                 role=faker.random_element(User.Role.choices),
             )
-            user.set_password('password')
+            user.set_password("password")
             user.save()
 
         # Create random steps
@@ -47,7 +60,7 @@ class Command(BaseCommand):
 
         Table.objects.create(
             current_date=datetime.now(),
-            current_step=Step.objects.order_by('?').first(),
+            current_step=Step.objects.order_by("?").first(),
         )
 
         # Create random orders and order entries
@@ -57,7 +70,7 @@ class Command(BaseCommand):
                 datetime_end=datetime.now()
             )
             order = Order.objects.create(
-                user=User.objects.order_by('?').first(),
+                user=User.objects.order_by("?").first(),
                 name=faker.word(),
                 number=faker.random_number(),
                 date=timezone.make_aware(order_date),
@@ -66,7 +79,7 @@ class Command(BaseCommand):
             for _ in range(random.randint(2, 5)):
                 OrderEntry.objects.create(
                     order=order,
-                    detail=Detail.objects.order_by('?').first(),
+                    detail=Detail.objects.order_by("?").first(),
                     quantity=faker.random_int(min=100, max=3000, step=100),
                 )
 
@@ -79,17 +92,17 @@ class Command(BaseCommand):
                     datetime_end=datetime.now()
                 )
                 report = Report.objects.create(
-                    user=User.objects.order_by('?').first(),
+                    user=User.objects.order_by("?").first(),
                     date=timezone.make_aware(report_date),
-                    order=Order.objects.order_by('?').first(),
+                    order=Order.objects.order_by("?").first(),
                     step=step,
                 )
                 for _ in range(random.randint(1, 2)):
                     ReportEntry.objects.create(
-                        user=User.objects.order_by('?').first(),
+                        user=User.objects.order_by("?").first(),
                         report=report,
-                        machine=Machine.objects.filter(step=step).order_by('?').first(),
-                        detail=Detail.objects.order_by('?').first(),
+                        machine=Machine.objects.filter(step=step).order_by("?").first(),
+                        detail=Detail.objects.order_by("?").first(),
                         quantity=faker.random_int(min=50, max=500),
                     )
 
@@ -101,14 +114,14 @@ class Command(BaseCommand):
                 )
                 plan = Plan.objects.create(
                     date=timezone.make_aware(plan_date),
-                    machine=Machine.objects.filter(step=step).order_by('?').first(),
+                    machine=Machine.objects.filter(step=step).order_by("?").first(),
                     step=step,
                 )
                 for _ in range(random.randint(1, 2)):
                     PlanEntry.objects.create(
                         plan=plan,
-                        detail=Detail.objects.order_by('?').first(),
+                        detail=Detail.objects.order_by("?").first(),
                         quantity=faker.random_int(min=50, max=500),
                     )
 
-        self.stdout.write(self.style.SUCCESS('Successfully generated demo data'))
+        self.stdout.write(self.style.SUCCESS("Successfully generated demo data"))

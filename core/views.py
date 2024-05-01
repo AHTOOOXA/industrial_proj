@@ -132,7 +132,7 @@ def switch_step(request, step):
 
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
-def stats_plan_drag_n_drop(request):
+def order_to_plan_drop(request):
     detail_id = request.POST.get("detail_id")
     order_id = request.POST.get("order_id")
     plan_id = request.POST.get("plan_id")
@@ -141,6 +141,26 @@ def stats_plan_drag_n_drop(request):
     plan_entry = PlanEntry(plan=plan,
                            detail_id=detail_id,
                            quantity=350).save()
+    cell = TableCell()
+    cell.plan = plan
+    context = {
+        "cell": cell.get_display()
+    }
+    response = render(request, "core/stats.html#plan_cell_inner", context)
+    return response
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def plan_to_plan_drop(request):
+    plan_entry_id = request.POST.get("plan_entry_id")
+    plan_id = request.POST.get("plan_id")
+    old_plan_id = request.POST.get("old_plan_id")
+
+    plan = Plan.objects.get(id=plan_id)
+    plan_entry = PlanEntry.objects.get(id=plan_entry_id)
+    plan_entry.plan_id = plan_id
+    plan_entry.save()
     cell = TableCell()
     cell.plan = plan
     context = {

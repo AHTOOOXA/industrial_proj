@@ -121,12 +121,25 @@
       x-data="{ adding: false }"
       @drop="adding = false"
       @dragover.prevent="adding = true"
-      @drop.prevent="update_plan($el, detail_id_drag, order_id_drag, {{ cell.plan.id }})"
+      @drop.prevent="drag_n_drop($el, drag_type, plan_entry_id_drag, order_id_drag, detail_id_drag, {{ cell.plan.id }})"
       @dragleave.prevent="adding = false"
   >
     {% partialdef plan_cell_inner inline=True %}
       {% for plan_entry in cell.plan.planentry_set.all %}
-        <div class={{ plan_entry.detail|get_detail_class }}>
+        <div class=""
+             @dragstart.self="
+                  event.dataTransfer.effectAllowed = 'move';
+                  event.dataTransfer.setData('text/plain', event.target.id);
+                  drag_type = 'plan_to_plan';
+                  plan_entry_id_drag = {{ plan_entry.id }};
+                  console.log(drag_type, plan_entry_id_drag);
+              "
+             @dragend="dragging = true"
+             @drop="dragging = false"
+             x-data="{ dragging: false }"
+             :class="{ 'd-none': dragging }"
+             draggable="true"
+        >
           <div class="detail-name">
             {{ plan_entry.detail }}
           </div>
@@ -211,8 +224,8 @@
     </div>
   </div>
   <div class="row"
-       x-data="{ highlight: '', detail_id_drag: '', order_id_drag: '', plan_entry_id_drag: '', plans_only: false }"
-       {# адский костыль для того чтобы стейт альпины не тупил #}
+       x-data="{ highlight: '', drag_type: '', detail_id_drag: '', order_id_drag: '', plan_entry_id_drag: '', plans_only: false }"
+          {# адский костыль для того чтобы стейт альпины не тупил #}
        @htmx:after-swap.window="plans_only = !plans_only;"
        @htmx:after-settle.window="plans_only = !plans_only;"
   >
@@ -244,18 +257,20 @@
               </a>
             {% endfor %}
           </div>
-          <button class="col-auto btn btn-dark me-3"
+          <button class="col-auto btn btn-warning me-3"
                   x-show="!plans_only"
                   @click.prevent="plans_only = !plans_only"
           >
-            Планы и отчеты
+            Планы и отчеты&nbsp;
+            <i class="bi bi-eye-fill"></i>
           </button>
-          <button class="col-auto btn btn-dark me-3"
+          <button class="col-auto btn btn-warning me-3"
                   x-show="plans_only"
                   @click.prevent="plans_only = !plans_only"
                   style="display: none"
           >
-            Только планы
+            Только планы&nbsp;
+            <i class="bi bi-eye-slash-fill"></i>
           </button>
         </div>
         <div class="row">
@@ -269,17 +284,13 @@
                 <th>
                   <div class="btn-group">
                     <a hx-get="{% url 'shift_table' value=-1 %}"
-{#                       hx-ext="alpine-morph"#}
-{#                       hx-swap="morph"#}
-                                                   hx-swap="innerHTML"
+                       hx-swap="innerHTML"
                        hx-target="#stats-table"
                        class="btn-sm btn-dark">
                       <i class="bi bi-arrow-up"></i>
                     </a>
                     <a hx-get="{% url 'shift_table' value=1 %}"
-{#                       hx-ext="alpine-morph"#}
-{#                       hx-swap="morph"#}
-                                                   hx-swap="innerHTML"
+                       hx-swap="innerHTML"
                        hx-target="#stats-table"
                        class="btn-sm btn-dark">
                       <i class="bi bi-arrow-down"></i>
@@ -325,20 +336,37 @@
           return '#' + id;
       }
 
-      function update_plan(el, detail_id, order_id, plan_id) {
-          console.log('data', detail_id, order_id, plan_id);
-          htmx.ajax(
-              'POST',
-              '{% url 'drag_n_drop' %}',
-              {
-                  target: get_target_by_id(el.id),
-                  values: {
-                      detail_id: detail_id,
-                      order_id: order_id,
-                      plan_id: plan_id,
-                  },
-                  swap: 'innerHTML',
-              });
+      function drag_n_drop(el, drag_type, plan_entry_id, order_id, detail_id, plan_id, old_plan_id) {
+          console.log(el, drag_type, plan_entry_id, order_id, detail_id);
+          if (drag_type === 'order_to_plan') {
+              console.log('order_to_plan')
+              htmx.ajax(
+                  'POST',
+                  '{% url 'order_to_plan_drop' %}',
+                  {
+                      target: get_target_by_id(el.id),
+                      values: {
+                          detail_id: detail_id,
+                          order_id: order_id,
+                          plan_id: plan_id,
+                      },
+                      swap: 'innerHTML',
+                  });
+          } else if (drag_type === 'plan_to_plan') {
+              console.log('plan_to_plan')
+              htmx.ajax(
+                  'POST',
+                  '{% url 'plan_to_plan_drop' %}',
+                  {
+                      target: get_target_by_id(el.id),
+                      values: {
+                          plan_entry_id: plan_entry_id,
+                          plan_id: plan_id,
+                          old_plan_id: old_plan_id,
+                      },
+                      swap: 'innerHTML',
+                  });
+          }
       }
 
       function toggleDoneElements() {
@@ -359,6 +387,7 @@
           const el = document.getElementById('stats-table-inner');
           el.scrollTop = totalHeight;
       }
+
       scroll()
       document.addEventListener('DOMContentLoaded', (event) => {
           scroll();
