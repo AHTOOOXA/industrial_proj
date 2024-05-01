@@ -3,29 +3,6 @@
 {% load crispy_forms_tags %}
 {% load template_filters %}
 
-{% partialdef order-button-sm-active %}
-  <a id="switch-button"
-     hx-swap-oob="true"
-     class="btn btn-dark"
-     type="button"
-     hx-get="{% url 'stats_orders_view_inactive' %}"
-     hx-target="#orders-list"
-     hx-swap="outerHTML">
-    <i class="bi bi-clipboard-check-fill"></i>
-  </a>
-{% endpartialdef %}
-{% partialdef order-button-sm-inactive %}
-  <a id="switch-button"
-     hx-swap-oob="true"
-     class="btn btn-primary"
-     type="button"
-     hx-get="{% url 'stats_orders_view_active' %}"
-     hx-target="#orders-list"
-     hx-swap="outerHTML">
-    <i class="bi bi-clipboard-check-fill"></i>
-  </a>
-{% endpartialdef %}
-
 {% block extra_head %}
   <style>
       /*Remove the scrollbar from Chrome, Safari, Edge and IE*/
@@ -107,6 +84,32 @@
   </style>
 {% endblock %}
 
+{% partialdef order-button-sm-active %}
+  <a id="switch-button"
+     hx-swap-oob="true"
+     class="btn btn-dark"
+     type="button"
+     hx-get="{% url 'stats_orders_view_inactive' %}"
+     hx-target="#orders-list"
+     hx-swap="outerHTML">
+    <i class="bi bi-clipboard-check-fill"></i>
+  </a>
+{% endpartialdef %}
+
+
+{% partialdef order-button-sm-inactive %}
+  <a id="switch-button"
+     hx-swap-oob="true"
+     class="btn btn-primary"
+     type="button"
+     hx-get="{% url 'stats_orders_view_active' %}"
+     hx-target="#orders-list"
+     hx-swap="outerHTML">
+    <i class="bi bi-clipboard-check-fill"></i>
+  </a>
+{% endpartialdef %}
+
+
 {% partialdef plan_cell %}
   <td class="plan"
       x-show="{{ x_show_param }}"
@@ -125,33 +128,29 @@
       @dragleave.prevent="adding = false"
   >
     {% partialdef plan_cell_inner inline=True %}
-      {% for plan_entry in cell.plan.planentry_set.all %}
-        <div class=""
-             @dragstart.self="
-                  event.dataTransfer.effectAllowed = 'move';
-                  event.dataTransfer.setData('text/plain', event.target.id);
-                  console.log(event.target.id)
+      <div id="{{ cell.id }}-inner" {% if hx_swap_oob %} hx-swap-oob="true"{% endif %}>
+        {% for plan_entry in cell.plan.planentry_set.all %}
+          <div class=""
+               @dragstart.self="
                   drag_type = 'plan_to_plan';
                   plan_entry_id_drag = {{ plan_entry.id }};
                   console.log(drag_type, plan_entry_id_drag);
               "
-             @dragend="dragging = true"
-             @drop="dragging = false"
-             x-data="{ dragging: false }"
-             :class="{ 'd-none': dragging }"
-             draggable="true"
-        >
-          <div class="detail-name">
-            {{ plan_entry.detail }}
+               draggable="true"
+          >
+            <div class="detail-name">
+              {{ plan_entry.detail }}
+            </div>
+            <div class="quantity">
+              {{ plan_entry.quantity }}
+            </div>
           </div>
-          <div class="quantity">
-            {{ plan_entry.quantity }}
-          </div>
-        </div>
-      {% endfor %}
+        {% endfor %}
+      </div>
     {% endpartialdef %}
   </td>
 {% endpartialdef %}
+
 
 {% partialdef done_cell %}
   <td class="done"
@@ -179,6 +178,7 @@
   </td>
 {% endpartialdef %}
 
+
 {% partialdef content_cell %}
   {% if cell.plan and cell.report_entries %}
     {% with x_show_param='!plans_only' %}
@@ -194,6 +194,7 @@
   {% endif %}
 {% endpartialdef %}
 
+
 {% partialdef day_cell %}
   <td class="{{ cell.class }}">
     <div>
@@ -204,6 +205,7 @@
   </td>
 {% endpartialdef %}
 
+
 {% partialdef night_cell %}
   <td class="{{ cell.class }}">
     <div>
@@ -213,6 +215,7 @@
     </div>
   </td>
 {% endpartialdef %}
+
 
 {% block content %}
   <div id="modals-here"
@@ -337,7 +340,7 @@
           return '#' + id;
       }
 
-      function drag_n_drop(el, drag_type, plan_entry_id, order_id, detail_id, plan_id, old_plan_id) {
+      function drag_n_drop(el, drag_type, plan_entry_id, order_id, detail_id, plan_id) {
           console.log(el, drag_type, plan_entry_id, order_id, detail_id);
           if (drag_type === 'order_to_plan') {
               console.log('order_to_plan')
@@ -363,7 +366,6 @@
                       values: {
                           plan_entry_id: plan_entry_id,
                           plan_id: plan_id,
-                          old_plan_id: old_plan_id,
                       },
                       swap: 'innerHTML',
                   });

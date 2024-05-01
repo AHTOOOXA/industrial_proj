@@ -155,17 +155,23 @@ def order_to_plan_drop(request):
 def plan_to_plan_drop(request):
     plan_entry_id = request.POST.get("plan_entry_id")
     plan_id = request.POST.get("plan_id")
-    old_plan_id = request.POST.get("old_plan_id")
-
     plan = Plan.objects.get(id=plan_id)
     plan_entry = PlanEntry.objects.get(id=plan_entry_id)
+    old_plan_id = plan_entry.plan_id
     plan_entry.plan_id = plan_id
     plan_entry.save()
     cell = TableCell(plan=plan)
     context = {
-        "cell": cell.get_display()
+        "cell": cell.get_display(),
     }
-    response = render(request, "core/stats.html#plan_cell_inner", context)
+    old_plan = Plan.objects.get(id=old_plan_id)
+    old_cell = TableCell(plan=old_plan)
+    old_context = {
+        "cell": old_cell.get_display(),
+        "hx_swap_oob": True,
+    }
+    response = HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context)
+                            + render_to_string("core/stats.html#plan_cell_inner", old_context))
     return response
 
 
