@@ -1,5 +1,7 @@
 {% extends 'core/base.html' %}
 {% load partials %}
+{% load crispy_forms_tags %}
+{% load template_filters %}
 
 {% partialdef order-button-sm-active %}
   <a id="switch-button"
@@ -39,8 +41,177 @@
       body, html {
           overflow: hidden;
       }
+
+      .highlight {
+          background-color: #ffc008;
+      }
+  </style>
+  <style>
+      table {
+          table-layout: fixed;
+      }
+
+      td {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          word-wrap: break-word;
+      }
+
+      .tableFixHead {
+          overflow: auto;
+          height: calc(100vh - 110px);
+      }
+
+      .tableFixHead thead th {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background-color: darkslategray;
+          color: white;
+      }
+
+      td.done {
+          background-color: lightgray;
+      }
+
+      td.plan {
+          text-align: center;
+          color: #198754;
+      }
+
+      td.day {
+          text-align: center;
+          background-color: #FFFEE0;
+          font-weight: bold;
+      }
+
+      td.night {
+          text-align: center;
+          background-color: #2F4858;
+          color: white;
+          font-weight: bold;
+      }
+
+      .detail-name {
+          font-size: 12px;
+      }
+
+      .quantity {
+          font-size: 14px;
+          font-weight: bold;
+      }
+
+      .adding {
+          background-color: lightgreen !important;
+      }
   </style>
 {% endblock %}
+
+{% partialdef plan_cell %}
+  <td class="plan"
+      x-show="{{ x_show_param }}"
+      id="{{ cell.id }}"
+      :class="{ 'adding': adding }"
+      hx-trigger="click"
+      hx-get='{% url 'plan_modal' %}'
+      hx-target="#modals-here"
+      hx-vals='{"pk": {{ cell.plan.pk }}}'
+      data-bs-toggle="modal"
+      data-bs-target="#modals-here"
+      x-data="{ adding: false }"
+      @drop="adding = false"
+      @dragover.prevent="adding = true"
+      @drop.prevent="drag_n_drop($el, drag_type, plan_entry_id_drag, order_id_drag, detail_id_drag, {{ cell.plan.id }})"
+      @dragleave.prevent="adding = false"
+  >
+    {% partialdef plan_cell_inner inline=True %}
+      {% for plan_entry in cell.plan.planentry_set.all %}
+        <div class=""
+             @dragstart.self="
+                  event.dataTransfer.effectAllowed = 'move';
+                  event.dataTransfer.setData('text/plain', event.target.id);
+                  drag_type = 'plan_to_plan';
+                  plan_entry_id_drag = {{ plan_entry.id }};
+                  console.log(drag_type, plan_entry_id_drag);
+              "
+             @dragend="dragging = true"
+             @drop="dragging = false"
+             x-data="{ dragging: false }"
+             :class="{ 'd-none': dragging }"
+             draggable="true"
+        >
+          <div class="detail-name">
+            {{ plan_entry.detail }}
+          </div>
+          <div class="quantity">
+            {{ plan_entry.quantity }}
+          </div>
+        </div>
+      {% endfor %}
+    {% endpartialdef %}
+  </td>
+{% endpartialdef %}
+
+{% partialdef done_cell %}
+  <td class="done"
+      x-show="{{ x_show_param }}"
+  >
+    {% for report_entry in cell.report_entries %}
+      <div class="{{ report_entry.detail|get_detail_class }}"
+           hx-trigger="click"
+           hx-get='{% url 'report_modal' %}'
+           hx-target="#modals-here"
+           hx-vals='{"pk": {{ report_entry.pk }}}'
+           data-bs-toggle="modal"
+           data-bs-target="#modals-here"
+           :class="highlight === '{{ report_entry.report.order }} {{ report_entry.detail }}' ? 'highlight' : ''"
+      >
+        <div class="detail-name"
+        >
+          {{ report_entry.detail }}
+        </div>
+        <div class="quantity">
+          {{ report_entry.quantity }}
+        </div>
+      </div>
+    {% endfor %}
+  </td>
+{% endpartialdef %}
+
+{% partialdef content_cell %}
+  {% if cell.plan and cell.report_entries %}
+    {% with x_show_param='!plans_only' %}
+      {% partial done_cell %}
+    {% endwith %}
+    {% with x_show_param='plans_only' %}
+      {% partial plan_cell %}
+    {% endwith %}
+  {% else %}
+    {% with x_show_param='true' %}
+      {% partial plan_cell %}
+    {% endwith %}
+  {% endif %}
+{% endpartialdef %}
+
+{% partialdef day_cell %}
+  <td class="{{ cell.class }}">
+    <div>
+      {{ cell.text }}
+      <br/>
+      <i class="bi bi-sun-fill"></i>
+    </div>
+  </td>
+{% endpartialdef %}
+
+{% partialdef night_cell %}
+  <td class="{{ cell.class }}">
+    <div>
+      {{ cell.text }}
+      <br/>
+      <i class="bi bi-moon-stars-fill"></i>
+    </div>
+  </td>
+{% endpartialdef %}
 
 {% block content %}
   <div id="modals-here"
@@ -52,7 +223,12 @@
       <div class="modal-content"></div>
     </div>
   </div>
-  <div class="row">
+  <div class="row"
+       x-data="{ highlight: '', drag_type: '', detail_id_drag: '', order_id_drag: '', plan_entry_id_drag: '', plans_only: false }"
+          {# адский костыль для того чтобы стейт альпины не тупил #}
+       @htmx:after-swap.window="plans_only = !plans_only;"
+       @htmx:after-settle.window="plans_only = !plans_only;"
+  >
     <div class="col-4 p-1">
       <div class="row">
         <div class="col">
@@ -68,38 +244,153 @@
       </div>
       {% include 'core/partials/orders_list.html' %}
     </div>
-    <div class="col-8 p-1" id="right-col">
-      {% include 'core/partials/table.html' %}
+    <div class="col-8 p-1" id="stats-table">
+      {% partialdef table inline=True %}
+        <div class="row justify-content-center mb-3">
+          <div class="col btn-group">
+            {% for step in steps %}
+              <a hx-get="{% url 'switch_step' step=step.pk %}"
+                 hx-swap="innerHTML"
+                 hx-target="#stats-table"
+                 class="btn {% if step.pk == active_step_pk %} btn-primary {% else %} btn-secondary {% endif %}">
+                {{ step.name }}
+              </a>
+            {% endfor %}
+          </div>
+          <button class="col-auto btn btn-warning me-3"
+                  x-show="!plans_only"
+                  @click.prevent="plans_only = !plans_only"
+          >
+            Планы и отчеты&nbsp;
+            <i class="bi bi-eye-fill"></i>
+          </button>
+          <button class="col-auto btn btn-warning me-3"
+                  x-show="plans_only"
+                  @click.prevent="plans_only = !plans_only"
+                  style="display: none"
+          >
+            Только планы&nbsp;
+            <i class="bi bi-eye-slash-fill"></i>
+          </button>
+        </div>
+        <div class="row">
+          <div class="tableFixHead" id="stats-table-inner">
+            <table class="table table-bordered text-center">
+              <colgroup>
+                <col style="width: 70px">
+              </colgroup>
+              <thead>
+              <tr>
+                <th>
+                  <div class="btn-group">
+                    <a hx-get="{% url 'shift_table' value=-1 %}"
+                       hx-swap="innerHTML"
+                       hx-target="#stats-table"
+                       class="btn-sm btn-dark">
+                      <i class="bi bi-arrow-up"></i>
+                    </a>
+                    <a hx-get="{% url 'shift_table' value=1 %}"
+                       hx-swap="innerHTML"
+                       hx-target="#stats-table"
+                       class="btn-sm btn-dark">
+                      <i class="bi bi-arrow-down"></i>
+                    </a>
+                  </div>
+                </th>
+                {% for machine in machines %}
+                  <th scope="col">{{ machine.name }}</th>
+                {% endfor %}
+              </tr>
+              </thead>
+              <tbody>
+              {% for row in table %}
+                <tr>
+                  {% for cell in row %}
+                    {% if cell.class == "day" %}
+                      {% partial day_cell %}
+                    {% elif cell.class == "night" %}
+                      {% partial night_cell %}
+                    {% else %}
+                      {% partial content_cell %}
+                    {% endif %}
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endpartialdef %}
     </div>
   </div>
-
 {% endblock %}
 
 {% block scripts %}
   <script>
-      $(document).ready(function () {
-          var lastClassChanged = '';
+      document.body.addEventListener("scroll-table", function (evt) {
+          scroll();
+      })
 
-          function changeToGreen(className) {
-              if (lastClassChanged === className) {
-                  $(className).css('background', '');
-                  lastClassChanged = '';
-              } else {
-                  $(lastClassChanged).css('background', '');
-                  $(className).css('background', '#ffc008');
-                  lastClassChanged = className;
-              }
+      function get_target_by_id(id) {
+          console.log(id)
+          return '#' + id;
+      }
+
+      function drag_n_drop(el, drag_type, plan_entry_id, order_id, detail_id, plan_id, old_plan_id) {
+          console.log(el, drag_type, plan_entry_id, order_id, detail_id);
+          if (drag_type === 'order_to_plan') {
+              console.log('order_to_plan')
+              htmx.ajax(
+                  'POST',
+                  '{% url 'order_to_plan_drop' %}',
+                  {
+                      target: get_target_by_id(el.id),
+                      values: {
+                          detail_id: detail_id,
+                          order_id: order_id,
+                          plan_id: plan_id,
+                      },
+                      swap: 'innerHTML',
+                  });
+          } else if (drag_type === 'plan_to_plan') {
+              console.log('plan_to_plan')
+              htmx.ajax(
+                  'POST',
+                  '{% url 'plan_to_plan_drop' %}',
+                  {
+                      target: get_target_by_id(el.id),
+                      values: {
+                          plan_entry_id: plan_entry_id,
+                          plan_id: plan_id,
+                          old_plan_id: old_plan_id,
+                      },
+                      swap: 'innerHTML',
+                  });
           }
+      }
 
-          // Attach the click event handler to all tr elements under the table with class "order-table"
-          $('table.order-table tbody tr').click(function () {
-              let className = $(this).attr('class'); // Get the class of the clicked element
-              console.log("Last class changed:", lastClassChanged);
-              changeToGreen('.' + className); // Call the function to change elements to green with the class name as an argument
+      function toggleDoneElements() {
+          const doneElements = document.querySelectorAll('.done-plan');
+          doneElements.forEach(element => {
+              element.style.display = element.style.display === 'none' ? '' : 'none';
           });
+      }
 
-          console.log("Last class changed:", lastClassChanged);
+      function scroll() {
+          const trElements = document.querySelectorAll('#stats-table-inner > table > tbody > tr');
+          let totalHeight = 0;
+          for (let i = 0; i < 10 && i < trElements.length; i++) {
+              const trElement = trElements[i];
+              totalHeight += trElement.clientHeight;
+              totalHeight += 2;
+          }
+          const el = document.getElementById('stats-table-inner');
+          el.scrollTop = totalHeight;
+      }
+
+      scroll()
+      document.addEventListener('DOMContentLoaded', (event) => {
+          scroll();
       });
-
   </script>
 {% endblock %}

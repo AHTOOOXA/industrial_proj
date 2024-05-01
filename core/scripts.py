@@ -1,8 +1,10 @@
 import datetime
+import re
 from collections import defaultdict
 
 from django.db.models import F, Prefetch
 from django.utils.timezone import make_aware
+from transliterate import translit
 
 from .models import Machine, Order, Plan, Report, ReportEntry, Step, Table
 
@@ -20,38 +22,42 @@ def get_shift(timestamp: datetime.datetime):
         return timestamp.replace(hour=shift_end, minute=0, second=0, microsecond=0)
 
 
+def get_html_id(date, machine) -> str:
+    return re.sub(
+        "[^(a-z)(A-Z)(0-9)._-]", "",
+        date.strftime("shift-%Y-%m-%d-%H-%M-%S-") + translit(str(machine), "ru", reversed=True))
+
+
 class TableCell:
-    def __init__(self, shift=None):
+    def __init__(self, date=None):
         self.report_entries = list()
         self.plan = None
-        self.shift = shift
+        self.date = date
 
     def get_display(self):
-        if self.report_entries and self.plan:
+        if self.report_entries or self.plan:
             return {
+                "id": get_html_id(get_shift(self.plan.date), self.plan.machine),
                 "class": "done-plan",
                 "report_entries": self.report_entries,
                 "plan": self.plan
             }
-        if self.report_entries:
-            return {
-                "class": "done",
-                "report_entries": self.report_entries
-            }
-        elif self.plan:
-            return {
-                "class": "plan",
-                "plan": self.plan
-            }
-        elif self.shift.hour == 3:
-            return {
-                "class": "day",
-                "text": str(self.shift.strftime("%d.%m"))
-            }
+        # if self.report_entries:
+        #     return {
+        #         "id": get_html_id(get_shift(self.report_entries[0].timestamp), self.plan.machine),
+        #         "class": "done",
+        #         "report_entries": self.report_entries
+        #     }
+        # elif self.plan:
+        #     return {
+        #         "id": get_html_id(get_shift(self.plan.date), self.plan.machine),
+        #         "class": "plan",
+        #         "plan": self.plan
+        #     }
         else:
             return {
-                "class": "night",
-                "text": str(self.shift.strftime("%d.%m"))
+                "class": "day" if self.date.hour == 3 else "night",
+                "text": str(self.date.strftime("%d.%m"))
             }
 
 
@@ -71,12 +77,13 @@ def get_shifts_table(shifts_count=28):
     # fetching and inserting report_entries
     report_entries = ReportEntry.objects.filter(
         report__date__range=(timestamps[0], timestamps[-1]),
-        report__step=step).select_related("detail").prefetch_related("machine").annotate(
+        report__step=step).select_related("detail").select_related("report__order").prefetch_related("machine").annotate(
         timestamp=F("report__date")
     )
     for report_entry in report_entries:
         shift = get_shift(report_entry.timestamp)
         table_empty_cells.discard((shift, report_entry.machine))
+        # cell_dict[shift][report_entry.machine].id = (shift, report_entry.machine)
         cell_dict[shift][report_entry.machine].report_entries.append(report_entry)
 
     # fetching and inserting plans
@@ -86,6 +93,7 @@ def get_shifts_table(shifts_count=28):
     for plan in plans:
         shift = get_shift(plan.date)
         table_empty_cells.discard((shift, plan.machine))
+        # cell_dict[shift][plan.machine].id = (shift, plan.machine)
         cell_dict[shift][plan.machine].plan = plan
 
     # --should rewrite to bulk_create
@@ -98,6 +106,7 @@ def get_shifts_table(shifts_count=28):
         )
         shift = get_shift(plan.date)
         table_empty_cells.discard((shift, plan.machine))
+        # cell_dict[shift][table_empty_cell[1]].id = (shift, table_empty_cell[1])
         cell_dict[shift][table_empty_cell[1]].plan = plan
 
     # preparing table for template
