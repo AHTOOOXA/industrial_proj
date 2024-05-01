@@ -130,6 +130,7 @@
              @dragstart.self="
                   event.dataTransfer.effectAllowed = 'move';
                   event.dataTransfer.setData('text/plain', event.target.id);
+                  console.log(event.target.id)
                   drag_type = 'plan_to_plan';
                   plan_entry_id_drag = {{ plan_entry.id }};
                   console.log(drag_type, plan_entry_id_drag);

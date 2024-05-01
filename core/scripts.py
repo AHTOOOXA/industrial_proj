@@ -29,9 +29,11 @@ def get_html_id(date, machine) -> str:
 
 
 class TableCell:
-    def __init__(self, date=None):
-        self.report_entries = list()
-        self.plan = None
+    def __init__(self, date=None, plan=None, report_entries=None):
+        self.report_entries = report_entries
+        if not report_entries:
+            self.report_entries = list()
+        self.plan = plan
         self.date = date
 
     def get_display(self):
@@ -113,7 +115,7 @@ def get_shifts_table(shifts_count=28):
     table = []
     for shift in shifts:
         row = [
-            TableCell(shift).get_display()
+            TableCell(date=shift).get_display()
         ]
         for machine in machines:
             row.append(cell_dict[shift][machine].get_display())

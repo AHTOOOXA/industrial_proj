@@ -161,8 +161,7 @@ def plan_to_plan_drop(request):
     plan_entry = PlanEntry.objects.get(id=plan_entry_id)
     plan_entry.plan_id = plan_id
     plan_entry.save()
-    cell = TableCell()
-    cell.plan = plan
+    cell = TableCell(plan=plan)
     context = {
         "cell": cell.get_display()
     }
@@ -772,12 +771,14 @@ def plan_modal(request):
     if request.method == "GET":
         pk = int(str(request.GET.get("pk")))
         plan = Plan.objects.get(pk=pk)
+        hx_target = "#" + TableCell(plan=plan).get_display()['id']
         form = PlanForm(instance=plan)
         formset = PlanEntryFormset(instance=plan)
         context = {
             "plan": plan,
             "form": form,
             "formset": formset,
+            "hx_target": hx_target,
         }
         return render(request, "core/partials/plan_modal.html", context)
     if request.method == "POST":
@@ -799,4 +800,8 @@ def plan_modal(request):
                         # print(entry_form.cleaned_data)
                         if entry_form.cleaned_data["id"] is not None:
                             entry_form.cleaned_data["id"].delete()
-        return HttpResponse("", headers={"HX-Refresh": "true"})
+        cell = TableCell(plan=plan)
+        context = {
+            "cell": cell.get_display()
+        }
+        return render(request, "core/stats.html#plan_cell_inner", context=context)

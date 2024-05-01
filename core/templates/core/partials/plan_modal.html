@@ -31,6 +31,8 @@
         <a class="btn btn-primary"
            hx-trigger="click"
            hx-post="{% url 'plan_modal' %}"
+           hx-target="{{ hx_target }}"
+           hx-swap="innerHTML"
            hx-vals='{"pk": {{ plan.pk }}}'
            data-bs-toggle="modal"
            data-bs-target="#modals-here">
