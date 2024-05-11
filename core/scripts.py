@@ -79,7 +79,8 @@ def get_shifts_table(shifts_count=28):
     # fetching and inserting report_entries
     report_entries = ReportEntry.objects.filter(
         report__date__range=(timestamps[0], timestamps[-1]),
-        report__step=step).select_related("detail").select_related("report__order").prefetch_related("machine").annotate(
+        report__step=step).select_related("detail").select_related("report__order").prefetch_related(
+        "machine").annotate(
         timestamp=F("report__date")
     )
     for report_entry in report_entries:
@@ -156,6 +157,14 @@ def get_orders_display(is_active=True, order_id=None):
     for order in orders:
         for order_entry in order.orderentry_set.all():
             for step in steps:
+                dates = set()
+
+                set(dates.add(get_shift(report.date))
+                    for report in order.prefetched_reports
+                    if report.step_id == step.pk
+                    for report_entry in report.reportentry_set.all()
+                    if report_entry.detail_id == order_entry.detail_id)
+
                 total_quantity_reported = sum(
                     report_entry.quantity
                     for report in order.prefetched_reports
@@ -166,7 +175,7 @@ def get_orders_display(is_active=True, order_id=None):
                 leftovers[step.pk][order_entry.pk]["reports"] = (-order_entry.quantity
                                                                  + total_quantity_reported)
                 total_quantity_planned = sum(
-                    plan_entry.quantity
+                    plan_entry.quantity if get_shift(plan_entry.plan.date) not in dates else 0
                     for plan_entry in order.prefetched_planentries
                     if plan_entry.detail_id == order_entry.detail_id
                     and plan_entry.plan.step_id == step.pk
