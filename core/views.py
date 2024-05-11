@@ -139,6 +139,7 @@ def order_to_plan_drop(request):
 
     plan = Plan.objects.get(id=plan_id)
     plan_entry = PlanEntry(plan=plan,
+                           order_id=order_id,
                            detail_id=detail_id,
                            quantity=350).save()
     cell = TableCell()
@@ -146,7 +147,15 @@ def order_to_plan_drop(request):
     context = {
         "cell": cell.get_display()
     }
-    response = render(request, "core/stats.html#plan_cell_inner", context)
+    steps, order, leftovers = get_orders_display(order_id=order_id)
+    order_context = {
+        "steps": steps,
+        "order": order,
+        "leftovers": leftovers,
+        "hx_swap_oob": True,
+    }
+    response = HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context)
+                            + render_to_string("core/partials/orders_list.html#order_card", order_context))
     return response
 
 
@@ -810,4 +819,12 @@ def plan_modal(request):
         context = {
             "cell": cell.get_display()
         }
-        return render(request, "core/stats.html#plan_cell_inner", context=context)
+        steps, orders, leftovers = get_orders_display()
+        orders_context = {
+            "steps": steps,
+            "orders": orders,
+            "leftovers": leftovers,
+            "hx_swap_oob": True,
+        }
+        return HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context=context)
+                            + render_to_string("core/partials/orders_list.html", context=orders_context))

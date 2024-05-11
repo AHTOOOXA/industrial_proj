@@ -220,31 +220,6 @@ class MachineForm(forms.ModelForm):
         }
 
 
-# class PlanForm(forms.ModelForm):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.helper = FormHelper(self)
-#         self.helper.form_id = 'plan-form'
-#         self.helper.render_hidden_fields = True
-#         self.helper.form_show_labels = False
-#         for field in self.fields:
-#             new_data = {
-#                 'hx-target': 'closest td',
-#                 'hx-swap': 'innerHTML',
-#                 'hx-post': 'htmx/plan_cell_save',
-#                 'hx-trigger': 'change, keyup, changed',  # delay:500ms
-#             }
-#             self.fields[field].widget.attrs.update(new_data)
-#
-#     class Meta:
-#         model = Plan
-#         fields = ['date', 'machine', 'detail', 'quantity']
-#         widgets = {
-#             'date': forms.HiddenInput(),
-#             'machine': forms.HiddenInput(),
-#         }
-
-
 class PlanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -271,8 +246,10 @@ class PlanEntryForm(forms.ModelForm):
         self.helper.disable_csrf = True
         self.helper.render_hidden_fields = True
         self.fields["detail"].queryset = Detail.objects.order_by("name")
+        self.fields["order"].queryset = Order.objects.filter(is_active=True).order_by("-date")
         self.helper.layout = Layout(
             Row(
+                Field("order", wrapper_class="form-group col mb-0", id="id_order"),
                 Field("detail", wrapper_class="form-group col mb-0"),
                 Field("quantity", wrapper_class="form-group col mb-0"),
                 Div(Field("DELETE", wrapper_class="form-group col mb-0"), css_class="d-none"),
@@ -292,8 +269,9 @@ class PlanEntryForm(forms.ModelForm):
 
     class Meta:
         model = PlanEntry
-        fields = ["detail", "quantity"]
+        fields = ["order", "detail", "quantity"]
         labels = {
+            "order": "Заказ №",
             "detail": "Деталь №",
             "quantity": "Количество",
         }

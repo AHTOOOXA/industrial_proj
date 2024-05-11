@@ -142,6 +142,7 @@ class Plan(models.Model):
 
 class PlanEntry(models.Model):
     plan = models.ForeignKey(Plan, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, null=True, default=None, on_delete=models.CASCADE)
     detail = models.ForeignKey(Detail, null=True, blank=True, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(null=True, blank=True)
 

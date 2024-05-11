@@ -137,6 +137,7 @@
                   console.log(drag_type, plan_entry_id_drag);
               "
                draggable="true"
+               :class="highlight === '{{ plan_entry.order }} {{ plan_entry.detail }}' ? 'highlight' : ''"
           >
             <div class="detail-name">
               {{ plan_entry.detail }}
@@ -218,15 +219,6 @@
 
 
 {% block content %}
-  <div id="modals-here"
-       class="modal modal-blur fade"
-       style="display: none"
-       aria-hidden="false"
-       tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-      <div class="modal-content"></div>
-    </div>
-  </div>
   <div class="row"
        x-data="{ highlight: '', drag_type: '', detail_id_drag: '', order_id_drag: '', plan_entry_id_drag: '', plans_only: false }"
           {# адский костыль для того чтобы стейт альпины не тупил #}

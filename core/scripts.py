@@ -6,7 +6,7 @@ from django.db.models import F, Prefetch
 from django.utils.timezone import make_aware
 from transliterate import translit
 
-from .models import Machine, Order, Plan, Report, ReportEntry, Step, Table
+from .models import Machine, Order, Plan, Report, ReportEntry, Step, Table, PlanEntry
 
 
 def get_shift(timestamp: datetime.datetime):
@@ -124,9 +124,14 @@ def get_shifts_table(shifts_count=28):
     return step.id, machines, table
 
 
-def get_orders_display(is_active=True):
+def get_orders_display(is_active=True, order_id=None):
     steps = Step.objects.all().order_by("id")
-    orders = Order.objects.filter(is_active=is_active).order_by("-id").prefetch_related(
+
+    query = Order.objects
+    if order_id:
+        query = query.filter(id=order_id)
+
+    orders = query.filter(is_active=is_active).order_by("-id").prefetch_related(
         "orderentry_set",
         "orderentry_set__detail",
         "report_set",
@@ -136,9 +141,18 @@ def get_orders_display(is_active=True):
                 "reportentry_set"
             ).select_related("step"),
             to_attr="prefetched_reports"
-        ))
+        ),
+        "planentry_set",
+        Prefetch(
+            "planentry_set",
+            queryset=PlanEntry.objects.prefetch_related(
+                "plan"
+            ).select_related("plan__step"),
+            to_attr="prefetched_planentries"
+        )
+    )
 
-    leftovers = defaultdict(lambda: defaultdict(int))
+    leftovers = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     for order in orders:
         for order_entry in order.orderentry_set.all():
             for step in steps:
@@ -149,8 +163,19 @@ def get_orders_display(is_active=True):
                     for report_entry in report.reportentry_set.all()
                     if report_entry.detail_id == order_entry.detail_id
                 )
-                leftovers[step.pk][order_entry.pk] = -order_entry.quantity + total_quantity_reported
-
+                leftovers[step.pk][order_entry.pk]["reports"] = (-order_entry.quantity
+                                                                 + total_quantity_reported)
+                total_quantity_planned = sum(
+                    plan_entry.quantity
+                    for plan_entry in order.prefetched_planentries
+                    if plan_entry.detail_id == order_entry.detail_id
+                    and plan_entry.plan.step_id == step.pk
+                )
+                leftovers[step.pk][order_entry.pk]["reports_and_plans"] = (-order_entry.quantity
+                                                                           + total_quantity_reported
+                                                                           + total_quantity_planned)
+    if order_id:
+        return steps, orders[0], leftovers
     return steps, orders, leftovers
 
 
