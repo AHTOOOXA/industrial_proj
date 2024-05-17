@@ -155,16 +155,12 @@ def get_orders_display(is_active=True, order_id=None):
 
     leftovers = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     for order in orders:
-        for order_entry in order.orderentry_set.all():
-            for step in steps:
-                dates = set()
-
-                set(dates.add(get_shift(report.date))
-                    for report in order.prefetched_reports
-                    if report.step_id == step.pk
-                    for report_entry in report.reportentry_set.all()
-                    if report_entry.detail_id == order_entry.detail_id)
-
+        for step in steps:
+            dates = set()
+            for report in order.prefetched_reports:
+                if report.step_id == step.pk:
+                    dates.add(get_shift(report.date))
+            for order_entry in order.orderentry_set.all():
                 total_quantity_reported = sum(
                     report_entry.quantity
                     for report in order.prefetched_reports
