@@ -65,3 +65,5 @@ env.bak/
 venv.bak/
 
 bootstrap.css
+
+db.json

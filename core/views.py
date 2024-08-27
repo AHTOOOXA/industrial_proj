@@ -817,7 +817,7 @@ def plan_modal(request):
                             entry_form.cleaned_data["id"].delete()
         cell = TableCell(plan=plan)
         context = {
-            "cell": cell.get_display()
+            "cell": cell.get_display(),
         }
         steps, orders, leftovers = get_orders_display()
         orders_context = {
@@ -826,5 +826,7 @@ def plan_modal(request):
             "leftovers": leftovers,
             "hx_swap_oob": True,
         }
+        print(render_to_string("core/stats.html#plan_cell_inner", context=context)
+              + render_to_string("core/partials/orders_list.html", context=orders_context))
         return HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context=context)
-                            + render_to_string("core/partials/orders_list.html", context=orders_context))
+                            + render_to_string("core/partials/orders_list.html#order_list", context=orders_context))
