@@ -1,24 +1,29 @@
 {% load partials %}
-<div class="scrollable">
+<div class="scrollable" x-data="{ open: {} }">
   {% partialdef order_list inline=True %}
   <div id="orders-list" {% if hx_swap_oob %}hx-swap-oob="true" {% endif %}>
     {% for order in orders %}
       {% partialdef order_card inline=True %}
         <div id="order-card-{{ order.id }}" {% if hx_swap_oob %}hx-swap-oob="true"{% endif %}>
           <div class="card mb-1" id="order-card">
-            <div class="card-header p-2" {% if not order.is_active %}
+            <div class="card-header p-0" {% if not order.is_active %}
                 style="background-color: rosybrown" {% elif order.in_progress %}
                 style="background-color: lightblue" {% endif %}>
               <div class="row">
-                <div class="col-auto ms-0 align-self-center">
+                <div class="col-auto align-self-center p-0 ps-3">
+                  <button @click="open[{{ order.id }}] = !open[{{ order.id }}]" class="btn btn-sm btn-link">
+                    <i :class="open[{{ order.id }}] ? 'bi bi-caret-right-fill' : 'bi bi-caret-down-fill'" style="color: black;"></i>
+                  </button>
+                </div>
+                <div class="col-auto align-self-center p-0 order-header-name ms-0">
                   {{ order.name }} <b>№ {{ order.number }}</b>
                 </div>
-                <div class="col-auto me-auto align-self-center order-header-date">
-                  {{ order.date|date:'d.m.y H:i' }}
+                <div class="col-auto align-self-center order-header-date ms-auto me-0">
+                  {{ order.date|date:'d.m/H:i' }}
                 </div>
-                <div class="col-auto ms-auto">
+                <div class="col-auto ms-0 me-3">
                   <div class="row">
-                    <div class="col btn-group btn-group-sm">
+                    <div class="col btn-group btn-group-sm p-1">
                       {% if order.is_active %}
                         <a class="btn-primary btn-sm" type="button"
                           hx-post="{% url 'orders_set_inactive' order.pk %}"
@@ -39,7 +44,7 @@
                         </a>
                       {% endif %}
                     </div>
-                    <div class="col">
+                    <div class="col p-1">
                       <div class="btn-group btn-group-sm">
                         <a class="btn btn-secondary" type="button" href="{% url 'orders_edit' order.pk %}">
                           <i class="bi bi-pencil-fill"></i>
@@ -59,7 +64,7 @@
                 </div>
               </div>
             </div>
-            <div class="card-body" style="padding: 0">
+            <div class="card-body" style="padding: 0" x-show="open[{{ order.id }}]">
               <div id="order-entries-list-{{ order.pk }}">
                 <div class="table-responsive">
                   <table class="table table-bordered bg-white mb-0 order-table">
