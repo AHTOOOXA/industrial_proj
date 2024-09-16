@@ -76,19 +76,6 @@ def get_shifts_table(shifts_count=28):
     table_empty_cells = {(shift, machine) for machine in machines for shift in shifts}
     cell_dict = defaultdict(lambda: defaultdict(lambda: TableCell()))
 
-    # fetching and inserting report_entries
-    report_entries = ReportEntry.objects.filter(
-        report__date__range=(timestamps[0], timestamps[-1]),
-        report__step=step).select_related("detail").select_related("report__order").prefetch_related(
-        "machine").annotate(
-        timestamp=F("report__date")
-    )
-    for report_entry in report_entries:
-        shift = get_shift(report_entry.timestamp)
-        table_empty_cells.discard((shift, report_entry.machine))
-        # cell_dict[shift][report_entry.machine].id = (shift, report_entry.machine)
-        cell_dict[shift][report_entry.machine].report_entries.append(report_entry)
-
     # fetching and inserting plans
     plans = Plan.objects.filter(
         date__range=(timestamps[0], timestamps[-1]),
@@ -112,6 +99,19 @@ def get_shifts_table(shifts_count=28):
         # cell_dict[shift][table_empty_cell[1]].id = (shift, table_empty_cell[1])
         cell_dict[shift][table_empty_cell[1]].plan = plan
 
+    # fetching and inserting report_entries
+    report_entries = ReportEntry.objects.filter(
+        report__date__range=(timestamps[0], timestamps[-1]),
+        report__step=step).select_related("detail").select_related("report__order").prefetch_related(
+        "machine").annotate(
+        timestamp=F("report__date")
+    )
+    for report_entry in report_entries:
+        shift = get_shift(report_entry.timestamp)
+        # table_empty_cells.discard((shift, report_entry.machine))
+        # cell_dict[shift][report_entry.machine].id = (shift, report_entry.machine)
+        cell_dict[shift][report_entry.machine].report_entries.append(report_entry)
+
     # preparing table for template
     table = []
     for shift in shifts:
@@ -119,7 +119,10 @@ def get_shifts_table(shifts_count=28):
             TableCell(date=shift).get_display()
         ]
         for machine in machines:
-            row.append(cell_dict[shift][machine].get_display())
+            try:
+                row.append(cell_dict[shift][machine].get_display())
+            except Exception as e:
+                print(shift, machine, e)
         table.append(row)
 
     return step.id, machines, table
