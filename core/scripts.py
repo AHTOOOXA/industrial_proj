@@ -44,18 +44,6 @@ class TableCell:
                 "report_entries": self.report_entries,
                 "plan": self.plan
             }
-        # if self.report_entries:
-        #     return {
-        #         "id": get_html_id(get_shift(self.report_entries[0].timestamp), self.plan.machine),
-        #         "class": "done",
-        #         "report_entries": self.report_entries
-        #     }
-        # elif self.plan:
-        #     return {
-        #         "id": get_html_id(get_shift(self.plan.date), self.plan.machine),
-        #         "class": "plan",
-        #         "plan": self.plan
-        #     }
         else:
             return {
                 "class": "day" if self.date.hour == 3 else "night",
@@ -83,7 +71,6 @@ def get_shifts_table(shifts_count=28):
     for plan in plans:
         shift = get_shift(plan.date)
         table_empty_cells.discard((shift, plan.machine))
-        # cell_dict[shift][plan.machine].id = (shift, plan.machine)
         cell_dict[shift][plan.machine].plan = plan
 
     # --should rewrite to bulk_create
@@ -96,7 +83,6 @@ def get_shifts_table(shifts_count=28):
         )
         shift = get_shift(plan.date)
         table_empty_cells.discard((shift, plan.machine))
-        # cell_dict[shift][table_empty_cell[1]].id = (shift, table_empty_cell[1])
         cell_dict[shift][table_empty_cell[1]].plan = plan
 
     # fetching and inserting report_entries
@@ -108,8 +94,6 @@ def get_shifts_table(shifts_count=28):
     )
     for report_entry in report_entries:
         shift = get_shift(report_entry.timestamp)
-        # table_empty_cells.discard((shift, report_entry.machine))
-        # cell_dict[shift][report_entry.machine].id = (shift, report_entry.machine)
         cell_dict[shift][report_entry.machine].report_entries.append(report_entry)
 
     # preparing table for template
@@ -216,7 +200,6 @@ def get_reports_view(shifts_count=10, page=1, user_pk=None):
                 user_id=user_pk,
                 date__range=(timestamps[i + 1], timestamps[i])).order_by("-date")
         shift_name = str(timestamps[i + 1].strftime("%d.%m")) + (" День" if timestamps[i + 1].hour < 12 else " Ночь")
-        # shift_name += ' ' + str(localtime(timestamps[i + 1])) + '  ' + str(localtime(timestamps[i]))
         if shift_reports:
             shift_reports_lists[shift_name] = {}
             for step in steps:
