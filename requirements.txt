@@ -8,3 +8,4 @@ django-template-partials
 psycopg2-binary
 Faker~=24.11.0
 transliterate
+sentry-sdk[django]
