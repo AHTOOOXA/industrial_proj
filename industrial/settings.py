@@ -2,6 +2,8 @@ from pathlib import Path
 
 from django.contrib import messages
 
+import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -9,10 +11,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-!-7djd9$p2r93ymecb0m-==4!g&wa=gsvubzo+oc=(^=-(z9qu"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG")
 
 ALLOWED_HOSTS = []
 
@@ -25,6 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'whitenoise.runserver_nostatic',
     "django_extensions",
     "core",
     "crispy_forms",
@@ -43,6 +46,7 @@ DBBACKUP_STORAGE_OPTIONS = {"location": "backup"}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -81,11 +85,11 @@ WSGI_APPLICATION = "industrial.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "industrial_dev",
-        "USER": "anton",
-        "PASSWORD": "",
-        "HOST": "localhost",
-        "PORT": "",
+        'NAME': os.getenv('DATABASE_NAME'),
+        'USER': os.getenv('DATABASE_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+        'HOST': os.getenv('DATABASE_HOST', 'db'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
 
@@ -115,7 +119,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Changed from 'static' to 'staticfiles'
+
+# Additional locations of static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -132,4 +144,35 @@ MESSAGE_TAGS = {
     messages.ERROR: "alert-danger",
 }
 
-STATICFILES_DIRS = [BASE_DIR / "static"]
+from django.utils.log import DEFAULT_LOGGING
+
+LOGGING_CONFIG = None
+LOGLEVEL = os.getenv('DJ_LOGLEVEL', 'info').upper()
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        # Use JSON formatter as default
+        'default': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+        },
+        'django.server': DEFAULT_LOGGING['formatters']['django.server'],
+    },
+    'handlers': {
+        # Route console logs to stdout
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        },
+        'django.server': DEFAULT_LOGGING['handlers']['django.server'],
+    },
+    'loggers': {
+        # Default logger for all modules
+        '': {
+            'level': LOGLEVEL,
+            'handlers': ['console', ],
+        },
+        # Default runserver request logging
+        'django.server': DEFAULT_LOGGING['loggers']['django.server'],
+    }
+}
