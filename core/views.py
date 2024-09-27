@@ -42,6 +42,11 @@ def home(request):
 
 
 @login_required(login_url="login_user")
+def error(request):
+    division_by_zero = 1 / 0
+
+
+@login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def stats(request):
     steps, orders, leftovers = get_orders_display(is_active=True)
