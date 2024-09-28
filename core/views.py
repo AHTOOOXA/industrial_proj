@@ -3,7 +3,7 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.utils.timezone import make_naive, now
@@ -335,7 +335,7 @@ def orders_delete(request, pk):
 def login_user(request):
     if request.method == "GET":
         return render(request, "core/login.html", {})
-    if request.method == "POST":
+    elif request.method == "POST":
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
@@ -348,6 +348,8 @@ def login_user(request):
         else:
             messages.error(request, "Ошибка при входе, попробуйте еще раз")
             return redirect("login_user")
+    else:
+        return HttpResponseNotAllowed(["GET", "POST"])
 
 
 def logout_user(request):
