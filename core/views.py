@@ -335,6 +335,10 @@ def orders_delete(request, pk):
 def login_user(request):
     if request.method == "GET":
         return render(request, "core/login.html", {})
+    elif request.method == "HEAD":
+        response = HttpResponse()
+        response['Content-Type'] = 'text/html; charset=utf-8'
+        return response
     elif request.method == "POST":
         username = request.POST["username"]
         password = request.POST["password"]
