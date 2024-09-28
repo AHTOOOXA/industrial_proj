@@ -154,7 +154,7 @@ LOGGING = {
     }
 }
 
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'localhost').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost,http://127.0.0.1').split(',')
 
 sentry_sdk.init(
     dsn=os.getenv("SENTRY_URL"),

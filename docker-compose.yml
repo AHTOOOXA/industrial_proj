@@ -51,19 +51,6 @@ services:
     networks:
       - dokploy-network
 
-  promtail:
-    image: grafana/promtail:2.8.1
-    container_name: promtail
-    volumes:
-      - ./promtail:/etc/promtail
-      - /var/lib/docker/containers:/var/log/containers:ro  # Mount Docker logs
-    command: -config.file=/etc/promtail/promtail-config.yaml
-    links:
-      - loki
-    restart: unless-stopped
-    networks:
-      - dokploy-network
-
   grafana:
     image: grafana/grafana:latest
     container_name: grafana

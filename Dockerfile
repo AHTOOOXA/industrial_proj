@@ -34,9 +34,6 @@ COPY . /app/
 # Collect static files (for production)
 RUN python manage.py collectstatic --noinput
 
-# Set the environment variables for Django
-ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-
 # # Expose the port Django runs on
 # EXPOSE 8000
 
