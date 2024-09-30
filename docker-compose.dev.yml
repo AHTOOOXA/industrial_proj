@@ -21,7 +21,6 @@ services:
       - .env
     depends_on:
       - db
-      - loki
     logging: *loki-logging
     networks:
       - dokploy-network
