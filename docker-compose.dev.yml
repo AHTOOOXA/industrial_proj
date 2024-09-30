@@ -39,33 +39,6 @@ services:
     networks:
       - dokploy-network
 
-  loki:
-    image: grafana/loki:2.8.1
-    container_name: dev_loki
-    ports:
-      - "13100:3100"
-    volumes:
-      - ./loki:/etc/loki
-    command: -config.file=/etc/loki/loki-config.yaml
-    restart: unless-stopped
-    networks:
-      - dokploy-network
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: dev_grafana
-    ports:
-      - "13001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    depends_on:
-      - loki
-    links:
-      - loki
-    networks:
-      - dokploy-network
-
 volumes:
   postgres_data:
   static_volume:
