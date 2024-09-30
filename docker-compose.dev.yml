@@ -8,7 +8,7 @@ x-logging: &loki-logging
 services:
   app:
     build: .
-    container_name: django_app
+    container_name: dev_django_app
     command: >
       sh -c "python manage.py migrate &&
              gunicorn industrial.wsgi:application --bind 0.0.0.0:8000 --log-config /app/gunicorn/gunicorn-logging.conf"
@@ -30,7 +30,7 @@ services:
 
   db:
     image: postgres:13-alpine
-    container_name: postgres_db
+    container_name: dev_postgres_db
     env_file:
       - .env
     volumes:
@@ -41,7 +41,7 @@ services:
 
   loki:
     image: grafana/loki:2.8.1
-    container_name: loki
+    container_name: dev_loki
     ports:
       - "13100:3100"
     volumes:
@@ -53,7 +53,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    container_name: grafana
+    container_name: dev_grafana
     ports:
       - "13001:3000"
     environment:
