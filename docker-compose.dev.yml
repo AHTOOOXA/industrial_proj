@@ -1,0 +1,75 @@
+version: '3'
+
+x-logging: &loki-logging
+  driver: loki
+  options:
+    loki-url: "http://localhost:3100/api/prom/push"
+
+services:
+  app:
+    build: .
+    container_name: django_app
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn industrial.wsgi:application --bind 0.0.0.0:8000 --log-config /app/gunicorn/gunicorn-logging.conf"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+    ports:
+      - "18000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - loki
+    links:
+      - loki
+    logging: *loki-logging
+    networks:
+      - dokploy-network
+
+  db:
+    image: postgres:13-alpine
+    container_name: postgres_db
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    logging: *loki-logging
+    networks:
+      - dokploy-network
+
+  loki:
+    image: grafana/loki:2.8.1
+    container_name: loki
+    ports:
+      - "13100:3100"
+    volumes:
+      - ./loki:/etc/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    restart: unless-stopped
+    networks:
+      - dokploy-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "13001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - loki
+    links:
+      - loki
+    networks:
+      - dokploy-network
+
+volumes:
+  postgres_data:
+  static_volume:
+
+networks:
+  dokploy-network:
+    external: true
