@@ -1,8 +1,29 @@
 {% load template_filters %}
 
-<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark mb-3">
+<style>
+  .navbar-brand {
+    position: relative;
+  }
+
+  .dev-badge {
+    position: absolute;
+    top: -5px;  /* Adjust as needed to fine-tune vertical positioning */
+    right: -20px;  /* Adjust as needed to fine-tune horizontal positioning */
+    font-size: 0.4em; /* You can adjust the size as needed */
+  }
+</style>
+
+<nav class="navbar fixed-top navbar-expand-lg
+  {% if debug %} navbar-light bg-warning {% else %} navbar-dark bg-dark {% endif %} mb-3">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{% url 'home' %}">MaxStat</a>
+    <a class="navbar-brand" href="{% url 'home' %}">
+      {% if debug %}
+        Maxstat
+        <span class="badge bg-danger dev-badge">dev</span>
+      {% else %}
+        MaxStat
+      {% endif %}
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
