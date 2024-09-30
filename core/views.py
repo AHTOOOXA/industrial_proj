@@ -42,11 +42,6 @@ def home(request):
 
 
 @login_required(login_url="login_user")
-def error(request):
-    division_by_zero = 1 / 0
-
-
-@login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def stats(request):
     steps, orders, leftovers = get_orders_display(is_active=True)
@@ -146,7 +141,9 @@ def order_to_plan_drop(request):
     plan_entry = PlanEntry(plan=plan,
                            order_id=order_id,
                            detail_id=detail_id,
-                           quantity=350).save()
+                           quantity=350)
+    plan_entry.save()
+
     cell = TableCell()
     cell.plan = plan
     context = {
@@ -337,7 +334,7 @@ def login_user(request):
         return render(request, "core/login.html", {})
     elif request.method == "HEAD":
         response = HttpResponse()
-        response['Content-Type'] = 'text/html; charset=utf-8'
+        response["Content-Type"] = "text/html; charset=utf-8"
         return response
     elif request.method == "POST":
         username = request.POST["username"]
@@ -797,7 +794,7 @@ def plan_modal(request):
     if request.method == "GET":
         pk = int(str(request.GET.get("pk")))
         plan = Plan.objects.get(pk=pk)
-        hx_target = "#" + TableCell(plan=plan).get_display()['id']
+        hx_target = "#" + TableCell(plan=plan).get_display()["id"]
         form = PlanForm(instance=plan)
         formset = PlanEntryFormset(instance=plan)
         context = {
@@ -837,7 +834,5 @@ def plan_modal(request):
             "leftovers": leftovers,
             "hx_swap_oob": True,
         }
-        print(render_to_string("core/stats.html#plan_cell_inner", context=context)
-              + render_to_string("core/partials/orders_list.html", context=orders_context))
         return HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context=context)
                             + render_to_string("core/partials/orders_list.html#order_list", context=orders_context))

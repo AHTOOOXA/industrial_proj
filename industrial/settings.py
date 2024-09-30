@@ -1,8 +1,9 @@
+import os
 from pathlib import Path
 
-from django.contrib import messages
-import os
 import sentry_sdk
+from django.contrib import messages
+from django.utils.log import DEFAULT_LOGGING
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -10,7 +11,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost").split(",")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -19,7 +20,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'whitenoise.runserver_nostatic',
+    "whitenoise.runserver_nostatic",
     "django_extensions",
     "core",
     "crispy_forms",
@@ -38,7 +39,7 @@ DBBACKUP_STORAGE_OPTIONS = {"location": "backup"}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -74,11 +75,11 @@ WSGI_APPLICATION = "industrial.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST', 'db'),
-        'PORT': os.getenv('DATABASE_PORT', '5432'),
+        "NAME": os.getenv("DATABASE_NAME"),
+        "USER": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "HOST": os.getenv("DATABASE_HOST", "db"),
+        "PORT": os.getenv("DATABASE_PORT", "5432"),
     }
 }
 
@@ -99,14 +100,14 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Changed from 'static' to 'staticfiles'
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    BASE_DIR / "static",
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -121,40 +122,38 @@ MESSAGE_TAGS = {
     messages.ERROR: "alert-danger",
 }
 
-from django.utils.log import DEFAULT_LOGGING
-
 LOGGING_CONFIG = None
-LOGLEVEL = os.getenv('DJ_LOGLEVEL', 'info').upper()
+LOGLEVEL = os.getenv("DJ_LOGLEVEL", "info").upper()
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
         # Use JSON formatter as default
-        'default': {
-            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+        "default": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
         },
-        'django.server': DEFAULT_LOGGING['formatters']['django.server'],
+        "django.server": DEFAULT_LOGGING["formatters"]["django.server"],
     },
-    'handlers': {
+    "handlers": {
         # Route console logs to stdout
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'default',
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
         },
-        'django.server': DEFAULT_LOGGING['handlers']['django.server'],
+        "django.server": DEFAULT_LOGGING["handlers"]["django.server"],
     },
-    'loggers': {
+    "loggers": {
         # Default logger for all modules
-        '': {
-            'level': LOGLEVEL,
-            'handlers': ['console', ],
+        "": {
+            "level": LOGLEVEL,
+            "handlers": ["console", ],
         },
         # Default runserver request logging
-        'django.server': DEFAULT_LOGGING['loggers']['django.server'],
+        "django.server": DEFAULT_LOGGING["loggers"]["django.server"],
     }
 }
 
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost,http://127.0.0.1').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1").split(",")
 
 sentry_sdk.init(
     dsn=os.getenv("SENTRY_URL"),
