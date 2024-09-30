@@ -22,8 +22,6 @@ services:
     depends_on:
       - db
       - loki
-    links:
-      - loki
     logging: *loki-logging
     networks:
       - dokploy-network
