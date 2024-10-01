@@ -11,12 +11,12 @@ services:
     container_name: dev_django_app
     command: >
       sh -c "python manage.py migrate &&
-             gunicorn industrial.wsgi:application --bind 0.0.0.0:8000 --log-config /app/gunicorn/gunicorn-logging.conf"
+             gunicorn industrial.wsgi:application --bind 0.0.0.0:18000 --log-config /app/gunicorn/gunicorn-logging.conf"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
     ports:
-      - "18000:8000"
+      - "18000:18000"
     env_file:
       - .env
     depends_on:
