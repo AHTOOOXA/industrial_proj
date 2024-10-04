@@ -15,7 +15,8 @@ RUN apk update && \
     bash \
     curl \
     gettext \
-    linux-headers
+    linux-headers \
+    postgresql-client
 
 # Set work directory
 WORKDIR /app

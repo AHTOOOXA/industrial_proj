@@ -1,4 +1,5 @@
 import datetime
+import logging
 import re
 from collections import defaultdict
 
@@ -6,7 +7,9 @@ from django.db.models import F, Prefetch
 from django.utils.timezone import make_aware
 from transliterate import translit
 
-from .models import Machine, Order, Plan, Report, ReportEntry, Step, Table, PlanEntry
+from .models import Machine, Order, Plan, PlanEntry, Report, ReportEntry, Step, Table
+
+logger = logging.getLogger(__name__)
 
 
 def get_shift(timestamp: datetime.datetime):
@@ -106,7 +109,7 @@ def get_shifts_table(shifts_count=28):
             try:
                 row.append(cell_dict[shift][machine].get_display())
             except Exception as e:
-                print(shift, machine, e)
+                logger.error(f"Error processing cell for shift {shift} and machine {machine}: {str(e)}", exc_info=True)
         table.append(row)
 
     return step.id, machines, table

@@ -1,0 +1,45 @@
+version: '3'
+
+x-logging: &loki-logging
+  driver: loki
+  options:
+    loki-url: "http://localhost:3100/api/prom/push"
+
+services:
+  app:
+    build: .
+    container_name: dev_django_app
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn industrial.wsgi:application --bind 0.0.0.0:18000 --log-config /app/gunicorn/gunicorn-logging.conf"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+    ports:
+      - "18000:18000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    logging: *loki-logging
+    networks:
+      - dokploy-network
+
+  db:
+    image: postgres:13-alpine
+    container_name: dev_postgres_db
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    logging: *loki-logging
+    networks:
+      - dokploy-network
+
+volumes:
+  postgres_data:
+  static_volume:
+
+networks:
+  dokploy-network:
+    external: true
