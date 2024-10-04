@@ -19,6 +19,11 @@
                   {{ order.name }} <b>№ {{ order.number }}</b>
                 </div>
                 <div class="col-auto align-self-center order-header-date ms-auto me-0">
+                  {{ orders_stats|lookup:order.pk:lookup:'planned' }}
+                  {{ orders_stats|lookup:order.pk:lookup:'reported' }}
+                  {{ orders_stats|lookup:order.pk:lookup:'total' }}
+                </div>
+                <div class="col-auto align-self-center order-header-date ms-auto me-0">
                   {{ order.date|date:'d.m/H:i' }}
                 </div>
                 <div class="col-auto ms-0 me-3">

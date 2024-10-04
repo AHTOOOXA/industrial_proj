@@ -144,6 +144,7 @@ def get_orders_display(is_active=True, order_id=None):
     )
 
     leftovers = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+    orders_stats = defaultdict(lambda: defaultdict(int))
     for step in steps:
         dates = {get_shift(report.date)
                  for order in orders
@@ -169,9 +170,12 @@ def get_orders_display(is_active=True, order_id=None):
                 leftovers[step.pk][order_entry.pk]["reports_and_plans"] = (-order_entry.quantity
                                                                            + total_quantity_reported
                                                                            + total_quantity_planned)
+                orders_stats[order.pk]["planned"] += total_quantity_planned
+                orders_stats[order.pk]["reported"] += total_quantity_reported
+                orders_stats[order.pk]["total"] += order_entry.quantity
     if order_id:
-        return steps, orders[0], leftovers
-    return steps, orders, leftovers
+        return steps, orders[0], leftovers, orders_stats
+    return steps, orders, leftovers, orders_stats
 
 
 # COMPLETE REFACTOR NEEDED
