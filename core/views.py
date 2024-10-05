@@ -48,7 +48,7 @@ def stats(request):
 
     current_date = Table.objects.all().first().current_date
     today = now()
-    today = today - datetime.timedelta(days=4)
+    today = today - datetime.timedelta(days=5)
     today = today.replace(hour=current_date.hour % 12, minute=current_date.minute,
                           second=current_date.second, microsecond=current_date.microsecond)
     Table.objects.all().update(current_date=today)
