@@ -44,7 +44,7 @@ def home(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def stats(request):
-    steps, orders, leftovers = get_orders_display(is_active=True)
+    steps, orders, leftovers, orders_stats = get_orders_display(is_active=True)
 
     current_date = Table.objects.all().first().current_date
     today = now()
@@ -56,6 +56,7 @@ def stats(request):
     context = {
         "orders": orders,
         "leftovers": leftovers,
+        "orders_stats": orders_stats,
         "steps": steps,
         "active_step_pk": active_step_pk,
         "machines": machines,

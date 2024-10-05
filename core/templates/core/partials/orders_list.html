@@ -1,3 +1,10 @@
+<style>
+.percentage {
+  text-align: right;
+  font-weight: bold;
+}
+</style>
+
 {% load partials %}
 <div class="scrollable" x-data="{ open: {} }">
   {% partialdef order_list inline=True %}
@@ -19,13 +26,16 @@
                   {{ order.name }} <b>№ {{ order.number }}</b>
                 </div>
                 <div class="col-auto align-self-center order-header-date ms-auto me-0">
-                  {{ orders_stats|lookup:order.pk:lookup:'planned' }}
-                  {{ orders_stats|lookup:order.pk:lookup:'reported' }}
-                  {{ orders_stats|lookup:order.pk:lookup:'total' }}
+                  <span class="percentage">
+                    {{ orders_stats|lookup:order.pk|lookup:"reported_p" }}%
+                  </span>
+                  <span class="percentage" style="color: #198754">
+                    {{ orders_stats|lookup:order.pk|lookup:"reported_and_planned_p" }}%
+                  </span>
                 </div>
-                <div class="col-auto align-self-center order-header-date ms-auto me-0">
+                {% comment %} <div class="col-auto align-self-center order-header-date ms-0 me-0">
                   {{ order.date|date:'d.m/H:i' }}
-                </div>
+                </div> {% endcomment %}
                 <div class="col-auto ms-0 me-3">
                   <div class="row">
                     <div class="col btn-group btn-group-sm p-1">
