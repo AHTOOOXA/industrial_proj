@@ -257,7 +257,8 @@ def orders_add(request):
             entry_formset = OrderEntryFormset(request.POST, request.FILES, instance=report_instance)
             if entry_formset.is_valid():
                 for entry_form in entry_formset:
-                    entry_form.save()
+                    if entry_form.cleaned_data["DELETE"] is not True:
+                        entry_form.save()
         return redirect("stats")
 
 
