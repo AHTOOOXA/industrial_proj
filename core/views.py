@@ -44,11 +44,11 @@ def home(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def stats(request):
-    steps, orders, leftovers = get_orders_display(is_active=True)
+    steps, orders, leftovers, orders_stats = get_orders_display(is_active=True)
 
     current_date = Table.objects.all().first().current_date
     today = now()
-    today = today - datetime.timedelta(days=6)
+    today = today - datetime.timedelta(days=4)
     today = today.replace(hour=current_date.hour % 12, minute=current_date.minute,
                           second=current_date.second, microsecond=current_date.microsecond)
     Table.objects.all().update(current_date=today)
@@ -56,6 +56,7 @@ def stats(request):
     context = {
         "orders": orders,
         "leftovers": leftovers,
+        "orders_stats": orders_stats,
         "steps": steps,
         "active_step_pk": active_step_pk,
         "machines": machines,
@@ -67,11 +68,12 @@ def stats(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def stats_orders_view_active(request):
-    steps, orders, leftovers = get_orders_display(is_active=True)
+    steps, orders, leftovers, orders_stats = get_orders_display(is_active=True)
     context = {
         "orders": orders,
         "leftovers": leftovers,
         "steps": steps,
+        "orders_stats": orders_stats,
     }
     return HttpResponse(
         render_to_string("core/stats.html#order-button-sm-active")
@@ -83,11 +85,12 @@ def stats_orders_view_active(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def stats_orders_view_inactive(request):
-    steps, orders, leftovers = get_orders_display(is_active=False)
+    steps, orders, leftovers, orders_stats = get_orders_display(is_active=False)
     context = {
         "orders": orders,
         "leftovers": leftovers,
         "steps": Step.objects.all(),
+        "orders_stats": orders_stats,
     }
     return HttpResponse(
         render_to_string("core/stats.html#order-button-sm-inactive")
@@ -149,11 +152,12 @@ def order_to_plan_drop(request):
     context = {
         "cell": cell.get_display()
     }
-    steps, order, leftovers = get_orders_display(order_id=order_id)
+    steps, order, leftovers, orders_stats = get_orders_display(order_id=order_id)
     order_context = {
         "steps": steps,
         "order": order,
         "leftovers": leftovers,
+        "orders_stats": orders_stats,
         "hx_swap_oob": True,
     }
     response = HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context)
@@ -189,11 +193,12 @@ def plan_to_plan_drop(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def orders_view(request):
-    steps, orders, leftovers = get_orders_display(is_active=True)
+    steps, orders, leftovers, orders_stats = get_orders_display(is_active=True)
     context = {
         "orders": orders,
         "leftovers": leftovers,
         "steps": steps,
+        "orders_stats": orders_stats,
     }
     return render(request, "core/orders.html", context)
 
@@ -201,11 +206,12 @@ def orders_view(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def orders_view_active(request):
-    steps, orders, leftovers = get_orders_display(is_active=True)
+    steps, orders, leftovers, orders_stats = get_orders_display(is_active=True)
     context = {
         "orders": orders,
         "leftovers": leftovers,
         "steps": steps,
+        "orders_stats": orders_stats,
     }
     return HttpResponse(
         render_to_string("core/orders.html#order-button-active")
@@ -217,11 +223,12 @@ def orders_view_active(request):
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def orders_view_inactive(request):
-    steps, orders, leftovers = get_orders_display(is_active=False)
+    steps, orders, leftovers, orders_stats = get_orders_display(is_active=False)
     context = {
         "orders": orders,
         "leftovers": leftovers,
         "steps": steps,
+        "orders_stats": orders_stats,
     }
     return HttpResponse(
         render_to_string("core/orders.html#order-button-inactive")
@@ -827,11 +834,12 @@ def plan_modal(request):
         context = {
             "cell": cell.get_display(),
         }
-        steps, orders, leftovers = get_orders_display()
+        steps, orders, leftovers, orders_stats = get_orders_display()
         orders_context = {
             "steps": steps,
             "orders": orders,
             "leftovers": leftovers,
+            "orders_stats": orders_stats,
             "hx_swap_oob": True,
         }
         return HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context=context)

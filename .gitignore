@@ -6,62 +6,62 @@ __pycache__
 db.sqlite3
 media
 
-# Backup files # 
-*.bak 
+# Backup files #
+*.bak
 
 # If you are using PyCharm #
 .idea
 
-# Python # 
-*.py[cod] 
-*$py.class 
+# Python #
+*.py[cod]
+*$py.class
 
-# Distribution / packaging 
-.Python build/ 
-develop-eggs/ 
-dist/ 
-downloads/ 
-eggs/ 
-.eggs/ 
-lib/ 
-lib64/ 
-parts/ 
-sdist/ 
-var/ 
-wheels/ 
+# Distribution / packaging
+.Python build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 *.whl
-*.egg-info/ 
-.installed.cfg 
-*.egg 
-*.manifest 
-*.spec 
+*.egg-info/
+.installed.cfg
+*.egg
+*.manifest
+*.spec
 
-# Installer logs 
-pip-log.txt 
-pip-delete-this-directory.txt 
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Unit test / coverage reports 
-htmlcov/ 
-.tox/ 
-.coverage 
-.coverage.* 
-.cache 
-.pytest_cache/ 
-nosetests.xml 
-coverage.xml 
-*.cover 
-.hypothesis/ 
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
 
-# pyenv 
-.python-version 
+# pyenv
+.python-version
 
-# Environments 
-.env 
-.venv 
-env/ 
-venv/ 
-ENV/ 
-env.bak/ 
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
 venv.bak/
 
 bootstrap.css
