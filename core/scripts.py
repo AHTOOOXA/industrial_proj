@@ -195,7 +195,7 @@ def get_orders_display(is_active=True, order_id=None):
             stats["reported_p"] = int(stats["reported"] / stats["total"] * 100)
     # TODO: redo
     if order_id:
-        return steps, orders.filter(id=order_id), leftovers, orders_stats
+        return steps, orders.filter(id=order_id).first(), leftovers, orders_stats
     return steps, orders, leftovers, orders_stats
 
 
