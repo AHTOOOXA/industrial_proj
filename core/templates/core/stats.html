@@ -191,12 +191,17 @@
             <div class="quantity"
                  x-data="{
                    quantity: '{{ plan_entry.quantity }}',
-                   originalQuantity: '{{ plan_entry.quantity }}'
+                   originalQuantity: '{{ plan_entry.quantity }}',
+                   focusInput() {
+                     setTimeout(() => {
+                       this.$refs[`input_{{ plan_entry.id }}`].focus();
+                     }, 50);
+                   }
                  }"
                  @click.stop="
                    $event.stopPropagation();
                    editingId = {{ plan_entry.id }};
-                   $nextTick(() => $refs.input_{{ plan_entry.id }}.focus());
+                   focusInput();
                  "
                  @click.away="
                    if (editingId === {{ plan_entry.id }}) {
