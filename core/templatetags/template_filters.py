@@ -3,6 +3,8 @@ from django.template.defaultfilters import register
 
 @register.filter(name="lookup")
 def lookup(dictionary, key):
+    if dictionary is None:
+        return None
     return dictionary.get(key)
 
 
