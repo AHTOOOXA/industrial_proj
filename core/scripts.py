@@ -119,8 +119,10 @@ def get_orders_display(is_active=True, order_id=None):
     steps = Step.objects.all().order_by("id")
 
     query = Order.objects
-    if order_id:
-        query = query.filter(id=order_id)
+
+    # TODO: remove it causes bug
+    # if order_id:
+    #     query = query.filter(id=order_id)
 
     orders = query.filter(is_active=is_active).order_by("-id").prefetch_related(
         "orderentry_set",
@@ -167,6 +169,19 @@ def get_orders_display(is_active=True, order_id=None):
                     if plan_entry.detail_id == order_entry.detail_id
                     and plan_entry.plan.step_id == step.pk
                 )
+                # TODO: remove
+                # if (order_entry.detail.name == "3683_PRIMA_Основание  595х595х48мм 0.4мм IP54 полки_Каскад"):
+                #     print(order, order_entry.detail.name, total_quantity_reported, total_quantity_planned)
+                #     print(*[
+                #         (plan_entry.quantity, plan_entry.id, plan_entry.plan.date)
+                #         if get_shift(plan_entry.plan.date) not in dates else 0
+                #         for plan_entry in order.prefetched_planentries
+                #         if plan_entry.detail_id == order_entry.detail_id
+                #         and plan_entry.plan.step_id == step.pk
+                #     ],
+                #     sep="\n")
+                #     print("------")
+                #     print()
                 leftovers[step.pk][order_entry.pk]["reports_and_plans"] = (-order_entry.quantity
                                                                            + total_quantity_reported
                                                                            + total_quantity_planned)

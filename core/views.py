@@ -144,7 +144,7 @@ def order_to_plan_drop(request):
     plan_entry = PlanEntry(plan=plan,
                            order_id=order_id,
                            detail_id=detail_id,
-                           quantity=350)
+                           quantity=400)
     plan_entry.save()
 
     cell = TableCell()
