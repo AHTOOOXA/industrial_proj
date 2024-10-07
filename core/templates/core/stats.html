@@ -219,8 +219,10 @@
                     }
                   });
                   editingId = null;
+                  originalQuantity = quantity;
                 "
                 @keyup.escape="editingId = null; quantity = originalQuantity"
+                @blur="if (editingId === {{ plan_entry.id }}) { editingId = null; quantity = originalQuantity; }"
                 x-ref="input_{{ plan_entry.id }}"
                 type="number"
                 class="quantity-input"

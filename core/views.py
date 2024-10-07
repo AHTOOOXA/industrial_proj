@@ -150,7 +150,7 @@ def order_to_plan_drop(request):
     cell = TableCell()
     cell.plan = plan
     context = {
-        "cell": cell.get_display()
+        "cell": cell.get_display(),
     }
     steps, order, leftovers, orders_stats = get_orders_display(order_id=order_id)
     order_context = {
