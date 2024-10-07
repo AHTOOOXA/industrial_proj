@@ -144,7 +144,7 @@ def get_orders_display(is_active=True, order_id=None):
     )
 
     leftovers = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-    orders_stats = defaultdict(lambda: defaultdict(int))
+    orders_stats = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     for step in steps:
         dates = {get_shift(report.date)
                  for order in orders
@@ -170,12 +170,14 @@ def get_orders_display(is_active=True, order_id=None):
                 leftovers[step.pk][order_entry.pk]["reports_and_plans"] = (-order_entry.quantity
                                                                            + total_quantity_reported
                                                                            + total_quantity_planned)
-                orders_stats[order.pk]["reported_and_planned"] += total_quantity_planned + total_quantity_reported
-                orders_stats[order.pk]["reported"] += total_quantity_reported
-                orders_stats[order.pk]["total"] += order_entry.quantity
-    for stats in orders_stats.values():
-        stats["reported_and_planned_p"] = int(stats["reported_and_planned"] / stats["total"] * 100)
-        stats["reported_p"] = int(stats["reported"] / stats["total"] * 100)
+                orders_stats[order.pk][step.pk]["reported_and_planned"] += (total_quantity_planned
+                                                                            + total_quantity_reported)
+                orders_stats[order.pk][step.pk]["reported"] += total_quantity_reported
+                orders_stats[order.pk][step.pk]["total"] += order_entry.quantity
+    for step_stats in orders_stats.values():
+        for stats in step_stats.values():
+            stats["reported_and_planned_p"] = int(stats["reported_and_planned"] / stats["total"] * 100)
+            stats["reported_p"] = int(stats["reported"] / stats["total"] * 100)
     if order_id:
         return steps, orders[0], leftovers, orders_stats
     return steps, orders, leftovers, orders_stats
