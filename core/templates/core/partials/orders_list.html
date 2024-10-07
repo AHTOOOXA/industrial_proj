@@ -3,6 +3,15 @@
   text-align: right;
   font-weight: bold;
 }
+.badge-container {
+  position: relative;
+}
+.corner-badge {
+  {% comment %} position: absolute; {% endcomment %}
+  top: -5px;  /* Adjust as needed to fine-tune vertical positioning */
+  right: -0px;  /* Adjust as needed to fine-tune horizontal positioning */
+  font-size: 0.8em; /* You can adjust the size as needed */
+}
 </style>
 
 {% load partials %}
@@ -25,12 +34,12 @@
                 <div class="col-auto align-self-center p-0 order-header-name ms-0">
                   {{ order.name }} <b>№ {{ order.number }}</b>
                 </div>
-                <div class="col-auto align-self-center order-header-date ms-auto me-0">
-                  <span class="percentage">
-                    {{ orders_stats|lookup:order.pk|lookup:"reported_p" }}%
+                <div class="col-auto align-self-center order-header-date ms-auto me-0 badge-container">
+                  <span class="percentage ms-auto me-0">
+                    {{ orders_stats|lookup:order.pk|lookup:steps.0.pk|lookup:"reported_p" }}%
                   </span>
-                  <span class="percentage" style="color: #198754">
-                    {{ orders_stats|lookup:order.pk|lookup:"reported_and_planned_p" }}%
+                  <span class="percentage">
+                    {{ orders_stats|lookup:order.pk|lookup:steps.1.pk|lookup:"reported_and_planned_p" }}%
                   </span>
                 </div>
                 {% comment %} <div class="col-auto align-self-center order-header-date ms-0 me-0">
