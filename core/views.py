@@ -3,6 +3,7 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -141,10 +142,30 @@ def order_to_plan_drop(request):
     plan_id = request.POST.get("plan_id")
 
     plan = Plan.objects.get(id=plan_id)
+    order = Order.objects.get(id=order_id)
+    detail = Detail.objects.get(id=detail_id)
+
+    # Calculate the leftover quantity
+    ordered_quantity = order.orderentry_set.get(detail=detail).quantity
+    reported_quantity = ReportEntry.objects.filter(
+        report__order=order,
+        detail=detail,
+        report__step=plan.step
+    ).aggregate(total=Sum("quantity"))["total"] or 0
+    planned_quantity = PlanEntry.objects.filter(
+        plan__step=plan.step,
+        order=order,
+        detail=detail
+    ).aggregate(total=Sum("quantity"))["total"] or 0
+    leftover_quantity = ordered_quantity - reported_quantity - planned_quantity
+
+    # Set the quantity as the minimum of leftover_quantity and 400
+    quantity = min(leftover_quantity, 400)
+
     plan_entry = PlanEntry(plan=plan,
                            order_id=order_id,
                            detail_id=detail_id,
-                           quantity=400)
+                           quantity=quantity)
     plan_entry.save()
 
     cell = TableCell()
