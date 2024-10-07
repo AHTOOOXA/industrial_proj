@@ -39,7 +39,7 @@
                     {{ orders_stats|lookup:order.pk|lookup:steps.0.pk|lookup:"reported_p" }}%
                   </span>
                   <span class="percentage">
-                    {{ orders_stats|lookup:order.pk|lookup:steps.1.pk|lookup:"reported_and_planned_p" }}%
+                    {{ orders_stats|lookup:order.pk|lookup:steps.1.pk|lookup:"reported_p" }}%
                   </span>
                 </div>
                 {% comment %} <div class="col-auto align-self-center order-header-date ms-0 me-0">
