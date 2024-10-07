@@ -174,7 +174,17 @@
       @dragleave.prevent="adding = false"
   >
     {% partialdef plan_cell_inner inline=True %}
-      <div id="{{ cell.id }}-inner" {% if hx_swap_oob %} hx-swap-oob="true"{% endif %}>
+      <div id="{{ cell.id }}-inner"
+           {% if hx_swap_oob %} hx-swap-oob="true"{% endif %}
+           x-data="{ newPlanEntryId: {{ new_plan_entry_id|default:'null' }} }"
+           x-init="
+             $nextTick(() => {
+               if (newPlanEntryId !== null) {
+                 $dispatch('focus-new-entry', newPlanEntryId);
+               }
+             })
+           "
+      >
         {% for plan_entry in cell.plan.planentry_set.all %}
           <div class=""
                @dragstart.self="
@@ -195,13 +205,17 @@
                    focusInput() {
                      setTimeout(() => {
                        this.$refs[`input_{{ plan_entry.id }}`].focus();
+                       this.$refs[`input_{{ plan_entry.id }}`].select();
                      }, 50);
+                   },
+                   enterEditMode() {
+                     editingId = {{ plan_entry.id }};
+                     this.focusInput();
                    }
                  }"
                  @click.stop="
                    $event.stopPropagation();
-                   editingId = {{ plan_entry.id }};
-                   focusInput();
+                   enterEditMode();
                  "
                  @click.away="
                    if (editingId === {{ plan_entry.id }}) {
@@ -209,6 +223,12 @@
                      quantity = originalQuantity;
                    }
                  "
+                 @focus-new-entry.window="
+                   if ($event.detail === {{ plan_entry.id }}) {
+                     enterEditMode();
+                   }
+                 "
+                 data-plan-entry-id="{{ plan_entry.id }}"
             >
               <span x-show="editingId !== {{ plan_entry.id }}" x-text="quantity"></span>
               <input
