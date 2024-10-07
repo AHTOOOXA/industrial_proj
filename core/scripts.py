@@ -193,8 +193,9 @@ def get_orders_display(is_active=True, order_id=None):
         for stats in step_stats.values():
             stats["reported_and_planned_p"] = int(stats["reported_and_planned"] / stats["total"] * 100)
             stats["reported_p"] = int(stats["reported"] / stats["total"] * 100)
-    if order_id:
-        return steps, orders[0], leftovers, orders_stats
+    # TODO: remove
+    # if order_id:
+    #     return steps, orders[0], leftovers, orders_stats
     return steps, orders, leftovers, orders_stats
 
 
