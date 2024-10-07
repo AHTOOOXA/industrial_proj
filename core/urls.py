@@ -48,4 +48,5 @@ urlpatterns = [
     path("users/<int:pk>/delete", views.users_delete, name="users_delete"),
     path("login", views.login_user, name="login_user"),
     path("logout_user", views.logout_user, name="logout_user"),
+    path("update-plan-entry-quantity/", views.update_plan_entry_quantity, name="update_plan_entry_quantity"),
 ]

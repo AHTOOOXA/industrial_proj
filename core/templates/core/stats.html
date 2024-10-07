@@ -22,6 +22,45 @@
       .highlight {
           background-color: #ffc008 !important;
       }
+
+      /* Styles for both editing and non-editing states */
+      .quantity span,
+      .quantity input.quantity-input {
+        display: inline-block;
+        width: 60px;
+        height: 22px; /* Set a fixed height */
+        line-height: 20px; /* Adjust line-height to center text vertically */
+        font-size: 14px;
+        font-weight: bold;
+        text-align: center;
+        vertical-align: middle;
+      }
+
+      /* Specific styles for the input when editing */
+      .quantity input.quantity-input {
+        padding: 0;
+        border: 1px solid #ced4da;
+        background: white;
+        color: inherit;
+        margin: 0; /* Remove any default margins */
+        box-sizing: border-box; /* Include padding and border in the element's total width and height */
+      }
+
+      .quantity input.quantity-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+      }
+
+      /* Remove up-down arrows from number input */
+      input[type=number].quantity-input::-webkit-inner-spin-button,
+      input[type=number].quantity-input::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      input[type=number].quantity-input {
+        -moz-appearance: textfield;
+      }
   </style>
   <style>
       table {
@@ -115,13 +154,20 @@
       x-show="{{ x_show_param }}"
       id="{{ cell.id }}"
       :class="{ 'adding': adding }"
-      hx-trigger="click"
-      hx-get='{% url 'plan_modal' %}'
-      hx-target="#modals-here"
-      hx-vals='{"pk": {{ cell.plan.pk }}}'
-      data-bs-toggle="modal"
-      data-bs-target="#modals-here"
-      x-data="{ adding: false }"
+      x-data="{
+        adding: false,
+        showModal() {
+          htmx.ajax('GET', '{% url 'plan_modal' %}', {
+            target: '#modals-here',
+            swap: 'innerHTML',
+            values: { pk: {{ cell.plan.pk }} },
+          }).then(() => {
+            const modal = new bootstrap.Modal(document.getElementById('modals-here'));
+            modal.show();
+          });
+        }
+      }"
+      @click="showModal()"
       @drop="adding = false"
       @dragover.prevent="adding = true"
       @drop.prevent="drag_n_drop($el, drag_type, plan_entry_id_drag, order_id_drag, detail_id_drag, {{ cell.plan.id }})"
@@ -142,8 +188,43 @@
             <div class="detail-name">
               {{ plan_entry.detail }}
             </div>
-            <div class="quantity">
-              {{ plan_entry.quantity }}
+            <div class="quantity"
+                 x-data="{
+                   quantity: '{{ plan_entry.quantity }}',
+                   originalQuantity: '{{ plan_entry.quantity }}'
+                 }"
+                 @click.stop="
+                   $event.stopPropagation();
+                   editingId = {{ plan_entry.id }};
+                   $nextTick(() => $refs.input_{{ plan_entry.id }}.focus());
+                 "
+                 @click.away="
+                   if (editingId === {{ plan_entry.id }}) {
+                     editingId = null;
+                     quantity = originalQuantity;
+                   }
+                 "
+            >
+              <span x-show="editingId !== {{ plan_entry.id }}" x-text="quantity"></span>
+              <input
+                x-show="editingId === {{ plan_entry.id }}"
+                x-model="quantity"
+                @keyup.enter="
+                  htmx.ajax('POST', '{% url 'update_plan_entry_quantity' %}', {
+                    target: '#{{ cell.id }}-inner',
+                    swap: 'none',
+                    values: {
+                      plan_entry_id: {{ plan_entry.id }},
+                      quantity: quantity
+                    }
+                  });
+                  editingId = null;
+                "
+                @keyup.escape="editingId = null; quantity = originalQuantity"
+                x-ref="input_{{ plan_entry.id }}"
+                type="number"
+                class="quantity-input"
+              >
             </div>
           </div>
         {% endfor %}
@@ -220,8 +301,15 @@
 
 {% block content %}
   <div class="row"
-       x-data="{ highlight: '', drag_type: '', detail_id_drag: '', order_id_drag: '', plan_entry_id_drag: '', plans_only: false }"
-          {# адский костыль для того чтобы стейт альпины не тупил #}
+       x-data="{
+         highlight: '',
+         drag_type: '',
+         detail_id_drag: '',
+         order_id_drag: '',
+         plan_entry_id_drag: '',
+         plans_only: false,
+         editingId: null  // Add this line
+       }"
        @htmx:after-swap.window="plans_only = !plans_only;"
        @htmx:after-settle.window="plans_only = !plans_only;"
   >

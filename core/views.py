@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseNotAllowed
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.utils.timezone import make_naive, now
 
@@ -845,3 +845,25 @@ def plan_modal(request):
         }
         return HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context=context)
                             + render_to_string("core/partials/orders_list.html#order_list", context=orders_context))
+
+
+def update_plan_entry_quantity(request):
+    if request.method == "POST":
+        plan_entry_id = request.POST.get("plan_entry_id")
+        new_quantity = request.POST.get("quantity")
+
+        plan_entry = get_object_or_404(PlanEntry, id=plan_entry_id)
+        plan_entry.quantity = new_quantity
+        plan_entry.save()
+
+        # TODO: implement save toast
+
+        steps, orders, leftovers, orders_stats = get_orders_display()
+        orders_context = {
+            "steps": steps,
+            "orders": orders,
+            "leftovers": leftovers,
+            "orders_stats": orders_stats,
+            "hx_swap_oob": True,
+        }
+        return HttpResponse(render_to_string("core/partials/orders_list.html#order_list", context=orders_context))
