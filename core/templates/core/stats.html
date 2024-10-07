@@ -170,7 +170,7 @@
       @click="showModal()"
       @drop="adding = false"
       @dragover.prevent="adding = true"
-      @drop.prevent="drag_n_drop($el, drag_type, plan_entry_id_drag, order_id_drag, detail_id_drag, {{ cell.plan.id }})"
+      @drop.prevent="drag_n_drop($el, drag_type, plan_entry_id_drag, order_id_drag, detail_id_drag, {{ cell.plan.id }}, leftover_drag)"
       @dragleave.prevent="adding = false"
   >
     {% partialdef plan_cell_inner inline=True %}
@@ -334,8 +334,9 @@
          detail_id_drag: '',
          order_id_drag: '',
          plan_entry_id_drag: '',
+         leftover_drag: 0,
          plans_only: false,
-         editingId: null  // Add this line
+         editingId: null
        }"
        @htmx:after-swap.window="plans_only = !plans_only;"
        @htmx:after-settle.window="plans_only = !plans_only;"
@@ -447,8 +448,8 @@
           return '#' + id;
       }
 
-      function drag_n_drop(el, drag_type, plan_entry_id, order_id, detail_id, plan_id) {
-          console.log(el, drag_type, plan_entry_id, order_id, detail_id);
+      function drag_n_drop(el, drag_type, plan_entry_id, order_id, detail_id, plan_id, leftover) {
+          console.log(el, drag_type, plan_entry_id, order_id, detail_id, leftover);
           if (drag_type === 'order_to_plan') {
               console.log('order_to_plan')
               htmx.ajax(
@@ -460,6 +461,7 @@
                           detail_id: detail_id,
                           order_id: order_id,
                           plan_id: plan_id,
+                          leftover: leftover,
                       },
                       swap: 'innerHTML',
                   });

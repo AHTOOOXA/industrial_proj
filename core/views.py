@@ -3,7 +3,6 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -78,8 +77,7 @@ def stats_orders_view_active(request):
     }
     return HttpResponse(
         render_to_string("core/stats.html#order-button-sm-active")
-        + (render_to_string("core/partials/orders_list.html",
-                            context))
+        + (render_to_string("core/partials/orders_list.html", context, request))
     )
 
 
@@ -95,8 +93,7 @@ def stats_orders_view_inactive(request):
     }
     return HttpResponse(
         render_to_string("core/stats.html#order-button-sm-inactive")
-        + (render_to_string("core/partials/orders_list.html",
-                            context))
+        + (render_to_string("core/partials/orders_list.html", context, request))
     )
 
 
@@ -140,27 +137,14 @@ def order_to_plan_drop(request):
     detail_id = request.POST.get("detail_id")
     order_id = request.POST.get("order_id")
     plan_id = request.POST.get("plan_id")
+    leftover = int(request.POST.get("leftover", 0))  # Get leftover from the request
 
     plan = Plan.objects.get(id=plan_id)
-    order = Order.objects.get(id=order_id)
-    detail = Detail.objects.get(id=detail_id)
 
-    # Calculate the leftover quantity
-    ordered_quantity = order.orderentry_set.get(detail=detail).quantity
-    reported_quantity = ReportEntry.objects.filter(
-        report__order=order,
-        detail=detail,
-        report__step=plan.step
-    ).aggregate(total=Sum("quantity"))["total"] or 0
-    planned_quantity = PlanEntry.objects.filter(
-        plan__step=plan.step,
-        order=order,
-        detail=detail
-    ).aggregate(total=Sum("quantity"))["total"] or 0
-    leftover_quantity = ordered_quantity - reported_quantity - planned_quantity
+    # Set the quantity as the minimum of leftover and 400
+    leftover = max(-leftover, 0)
+    quantity = min(leftover, 400)
 
-    # Set the quantity as the minimum of leftover_quantity and 400
-    quantity = min(leftover_quantity, 400)
 
     plan_entry = PlanEntry(plan=plan,
                            order_id=order_id,
@@ -182,8 +166,8 @@ def order_to_plan_drop(request):
         "orders_stats": orders_stats,
         "hx_swap_oob": True,
     }
-    response = HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context)
-                            + render_to_string("core/partials/orders_list.html#order_card", order_context))
+    response = HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context, request)
+                            + render_to_string("core/partials/orders_list.html#order_card", order_context, request))
     return response
 
 
@@ -207,8 +191,8 @@ def plan_to_plan_drop(request):
         "cell": old_cell.get_display(),
         "hx_swap_oob": True,
     }
-    response = HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context)
-                            + render_to_string("core/stats.html#plan_cell_inner", old_context))
+    response = HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context, request)
+                            + render_to_string("core/stats.html#plan_cell_inner", old_context, request))
     return response
 
 
@@ -237,8 +221,7 @@ def orders_view_active(request):
     }
     return HttpResponse(
         render_to_string("core/orders.html#order-button-active")
-        + (render_to_string("core/partials/orders_list.html",
-                            context))
+        + (render_to_string("core/partials/orders_list.html", context, request))
     )
 
 
@@ -254,8 +237,7 @@ def orders_view_inactive(request):
     }
     return HttpResponse(
         render_to_string("core/orders.html#order-button-inactive")
-        + (render_to_string("core/partials/orders_list.html",
-                            context))
+        + (render_to_string("core/partials/orders_list.html", context, request))
     )
 
 
@@ -865,8 +847,10 @@ def plan_modal(request):
             "orders_stats": orders_stats,
             "hx_swap_oob": True,
         }
-        return HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context=context)
-                            + render_to_string("core/partials/orders_list.html#order_list", context=orders_context))
+        return HttpResponse(
+            render_to_string("core/stats.html#plan_cell_inner", context=context, request=request)
+            + render_to_string("core/partials/orders_list.html#order_list", context=orders_context, request=request)
+        )
 
 
 def update_plan_entry_quantity(request):
@@ -888,4 +872,4 @@ def update_plan_entry_quantity(request):
             "orders_stats": orders_stats,
             "hx_swap_oob": True,
         }
-        return HttpResponse(render_to_string("core/partials/orders_list.html#order_list", context=orders_context))
+        return HttpResponse(render_to_string("core/partials/orders_list.html#order_list", orders_context, request))
