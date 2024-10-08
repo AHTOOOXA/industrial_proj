@@ -116,7 +116,8 @@
                           drag_type = 'order_to_plan';
                           detail_id_drag = {{ order_entry.detail_id }};
                           order_id_drag = {{ order.pk }};
-                          console.log(drag_type, detail_id_drag, order_id_drag);
+                          leftover_drag = {{ leftovers|lookup:active_step_pk|lookup:order_entry.pk|lookup:'reports_and_plans' }};
+                          console.log(drag_type, detail_id_drag, order_id_drag, leftover_drag);
                       "
                             draggable="true">
                           {{ order_entry.detail }}

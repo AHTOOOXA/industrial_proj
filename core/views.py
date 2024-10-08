@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseNotAllowed
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.utils.timezone import make_naive, now
 
@@ -49,8 +49,12 @@ def stats(request):
     current_date = Table.objects.all().first().current_date
     today = now()
     today = today - datetime.timedelta(days=5)
-    today = today.replace(hour=current_date.hour % 12, minute=current_date.minute,
-                          second=current_date.second, microsecond=current_date.microsecond)
+    today = today.replace(
+        hour=current_date.hour % 12,
+        minute=current_date.minute,
+        second=current_date.second,
+        microsecond=current_date.microsecond,
+    )
     Table.objects.all().update(current_date=today)
     active_step_pk, machines, table = get_shifts_table()
     context = {
@@ -60,7 +64,7 @@ def stats(request):
         "steps": steps,
         "active_step_pk": active_step_pk,
         "machines": machines,
-        "table": table
+        "table": table,
     }
     return render(request, "core/stats.html", context)
 
@@ -77,8 +81,7 @@ def stats_orders_view_active(request):
     }
     return HttpResponse(
         render_to_string("core/stats.html#order-button-sm-active")
-        + (render_to_string("core/partials/orders_list.html",
-                            context))
+        + (render_to_string("core/partials/orders_list.html", context, request))
     )
 
 
@@ -94,8 +97,7 @@ def stats_orders_view_inactive(request):
     }
     return HttpResponse(
         render_to_string("core/stats.html#order-button-sm-inactive")
-        + (render_to_string("core/partials/orders_list.html",
-                            context))
+        + (render_to_string("core/partials/orders_list.html", context, request))
     )
 
 
@@ -107,12 +109,7 @@ def shift_table(request, value):
     Table.objects.all().update(current_date=new_date)
 
     active_step_pk, machines, table = get_shifts_table()
-    context = {
-        "steps": Step.objects.all(),
-        "active_step_pk": active_step_pk,
-        "machines": machines,
-        "table": table
-    }
+    context = {"steps": Step.objects.all(), "active_step_pk": active_step_pk, "machines": machines, "table": table}
     return render(request, "core/stats.html#table", context)
 
 
@@ -122,12 +119,7 @@ def switch_step(request, step):
     Table.objects.all().update(current_step=step)
 
     active_step_pk, machines, table = get_shifts_table()
-    context = {
-        "steps": Step.objects.all(),
-        "active_step_pk": active_step_pk,
-        "machines": machines,
-        "table": table
-    }
+    context = {"steps": Step.objects.all(), "active_step_pk": active_step_pk, "machines": machines, "table": table}
     response = render(request, "core/stats.html#table", context)
     response["HX-Trigger-After-Settle"] = "scroll-table"
     return response
@@ -139,18 +131,22 @@ def order_to_plan_drop(request):
     detail_id = request.POST.get("detail_id")
     order_id = request.POST.get("order_id")
     plan_id = request.POST.get("plan_id")
+    leftover = int(request.POST.get("leftover", 0))  # Get leftover from the request
 
     plan = Plan.objects.get(id=plan_id)
-    plan_entry = PlanEntry(plan=plan,
-                           order_id=order_id,
-                           detail_id=detail_id,
-                           quantity=400)
+
+    # Set the quantity as the minimum of leftover and 400
+    leftover = max(-leftover, 0)
+    quantity = min(leftover, 400)
+
+    plan_entry = PlanEntry(plan=plan, order_id=order_id, detail_id=detail_id, quantity=quantity)
     plan_entry.save()
 
     cell = TableCell()
     cell.plan = plan
     context = {
-        "cell": cell.get_display()
+        "cell": cell.get_display(),
+        "new_plan_entry_id": plan_entry.id,
     }
     steps, order, leftovers, orders_stats = get_orders_display(order_id=order_id)
     order_context = {
@@ -160,8 +156,10 @@ def order_to_plan_drop(request):
         "orders_stats": orders_stats,
         "hx_swap_oob": True,
     }
-    response = HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context)
-                            + render_to_string("core/partials/orders_list.html#order_card", order_context))
+    response = HttpResponse(
+        render_to_string("core/stats.html#plan_cell_inner", context, request)
+        + render_to_string("core/partials/orders_list.html#order_card", order_context, request)
+    )
     return response
 
 
@@ -185,8 +183,10 @@ def plan_to_plan_drop(request):
         "cell": old_cell.get_display(),
         "hx_swap_oob": True,
     }
-    response = HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context)
-                            + render_to_string("core/stats.html#plan_cell_inner", old_context))
+    response = HttpResponse(
+        render_to_string("core/stats.html#plan_cell_inner", context, request)
+        + render_to_string("core/stats.html#plan_cell_inner", old_context, request)
+    )
     return response
 
 
@@ -215,8 +215,7 @@ def orders_view_active(request):
     }
     return HttpResponse(
         render_to_string("core/orders.html#order-button-active")
-        + (render_to_string("core/partials/orders_list.html",
-                            context))
+        + (render_to_string("core/partials/orders_list.html", context, request))
     )
 
 
@@ -232,8 +231,7 @@ def orders_view_inactive(request):
     }
     return HttpResponse(
         render_to_string("core/orders.html#order-button-inactive")
-        + (render_to_string("core/partials/orders_list.html",
-                            context))
+        + (render_to_string("core/partials/orders_list.html", context, request))
     )
 
 
@@ -729,9 +727,7 @@ def users_view(request):
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def users_add(request):
     if request.method == "GET":
-        context = {
-            "form": UserCreateAdminForm()
-        }
+        context = {"form": UserCreateAdminForm()}
         return render(request, "core/user_form.html", context)
     if request.method == "POST":
         form = UserCreateAdminForm(request.POST)
@@ -775,9 +771,7 @@ def users_delete(request, pk):
 def report_modal(request):
     pk = int(str(request.GET.get("pk")))
     report = ReportEntry.objects.get(pk=pk).report
-    context = {
-        "report": report
-    }
+    context = {"report": report}
     return render(request, "core/partials/report_modal.html", context)
 
 
@@ -843,5 +837,29 @@ def plan_modal(request):
             "orders_stats": orders_stats,
             "hx_swap_oob": True,
         }
-        return HttpResponse(render_to_string("core/stats.html#plan_cell_inner", context=context)
-                            + render_to_string("core/partials/orders_list.html#order_list", context=orders_context))
+        return HttpResponse(
+            render_to_string("core/stats.html#plan_cell_inner", context=context, request=request)
+            + render_to_string("core/partials/orders_list.html#order_list", context=orders_context, request=request)
+        )
+
+
+def update_plan_entry_quantity(request):
+    if request.method == "POST":
+        plan_entry_id = request.POST.get("plan_entry_id")
+        new_quantity = request.POST.get("quantity")
+
+        plan_entry = get_object_or_404(PlanEntry, id=plan_entry_id)
+        plan_entry.quantity = new_quantity
+        plan_entry.save()
+
+        # TODO: implement save toast
+
+        steps, orders, leftovers, orders_stats = get_orders_display()
+        orders_context = {
+            "steps": steps,
+            "orders": orders,
+            "leftovers": leftovers,
+            "orders_stats": orders_stats,
+            "hx_swap_oob": True,
+        }
+        return HttpResponse(render_to_string("core/partials/orders_list.html#order_list", orders_context, request))

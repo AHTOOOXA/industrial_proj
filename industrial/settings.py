@@ -63,6 +63,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "utils.context_processors.debug_context_processor",
+                "utils.context_processors.active_step_pk_context_processor",
             ],
             "libraries": {
                 "template_filters": "core.templatetags.template_filters",
@@ -89,7 +90,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "OPTIONS": {
             "min_length": 3,
-        }
+        },
     },
 ]
 
@@ -147,11 +148,13 @@ LOGGING = {
         # Default logger for all modules
         "": {
             "level": LOGLEVEL,
-            "handlers": ["console", ],
+            "handlers": [
+                "console",
+            ],
         },
         # Default runserver request logging
         "django.server": DEFAULT_LOGGING["loggers"]["django.server"],
-    }
+    },
 }
 
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1").split(",")
