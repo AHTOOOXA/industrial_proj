@@ -148,10 +148,11 @@ def get_orders_display(is_active=True, order_id=None):
     leftovers = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     orders_stats = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     for step in steps:
-        dates = {get_shift(report.date)
-                 for order in orders
-                 for report in order.prefetched_reports
-                 if report.step.pk == step.pk}
+        blocked_cells = {(get_shift(report.date), report_entry.machine)
+                         for order in orders
+                         for report in order.prefetched_reports
+                         for report_entry in report.reportentry_set.all()
+                         if report.step.pk == step.pk}
         for order in orders:
             for order_entry in order.orderentry_set.all():
                 total_quantity_reported = sum(
@@ -164,24 +165,12 @@ def get_orders_display(is_active=True, order_id=None):
                 leftovers[step.pk][order_entry.pk]["reports"] = (-order_entry.quantity
                                                                  + total_quantity_reported)
                 total_quantity_planned = sum(
-                    plan_entry.quantity if get_shift(plan_entry.plan.date) not in dates else 0
+                    plan_entry.quantity
+                    if (get_shift(plan_entry.plan.date), plan_entry.plan.machine) not in blocked_cells else 0
                     for plan_entry in order.prefetched_planentries
                     if plan_entry.detail_id == order_entry.detail_id
                     and plan_entry.plan.step_id == step.pk
                 )
-                # TODO: remove
-                # if (order_entry.detail.name == "3683_PRIMA_Основание  595х595х48мм 0.4мм IP54 полки_Каскад"):
-                #     print(order, order_entry.detail.name, total_quantity_reported, total_quantity_planned)
-                #     print(*[
-                #         (plan_entry.quantity, plan_entry.id, plan_entry.plan.date)
-                #         if get_shift(plan_entry.plan.date) not in dates else 0
-                #         for plan_entry in order.prefetched_planentries
-                #         if plan_entry.detail_id == order_entry.detail_id
-                #         and plan_entry.plan.step_id == step.pk
-                #     ],
-                #     sep="\n")
-                #     print("------")
-                #     print()
                 leftovers[step.pk][order_entry.pk]["reports_and_plans"] = (-order_entry.quantity
                                                                            + total_quantity_reported
                                                                            + total_quantity_planned)
