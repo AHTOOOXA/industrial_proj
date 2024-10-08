@@ -1,5 +1,4 @@
 import datetime
-import json
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -21,7 +20,7 @@ from core.forms import (
     UserCreateAdminForm,
 )
 
-from .decorators import allowed_user_roles, unauthenticated_user
+from .decorators import allowed_user_roles, toast_message, unauthenticated_user
 from .models import (
     Detail,
     Machine,
@@ -238,6 +237,7 @@ def orders_view_inactive(request):
 
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
+@toast_message(success_message="Заказ успешно добавлен", error_message="Ошибка при добавлении заказа")
 def orders_add(request):
     if request.method == "GET":
         form = OrderForm(initial={"date": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
@@ -793,6 +793,7 @@ def add_plan_entry_form(request):
 
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
+@toast_message(success_message="План успешно обновлен", error_message="Ошибка при обновлении плана")
 def plan_modal(request):
     if request.method == "GET":
         pk = int(str(request.GET.get("pk")))
@@ -844,12 +845,19 @@ def plan_modal(request):
         )
 
 
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+@toast_message(
+    success_message="Количество обновлено: '{detail_name}' ({old_quantity} → {new_quantity})",
+    error_message="Ошибка при обновлении количества для '{detail_name}'",
+)
 def update_plan_entry_quantity(request):
     if request.method == "POST":
         plan_entry_id = request.POST.get("plan_entry_id")
         new_quantity = request.POST.get("quantity")
 
         plan_entry = get_object_or_404(PlanEntry, id=plan_entry_id)
+        old_quantity = plan_entry.quantity
         plan_entry.quantity = new_quantity
         plan_entry.save()
 
@@ -863,10 +871,11 @@ def update_plan_entry_quantity(request):
         }
 
         response = HttpResponse(render_to_string("core/partials/orders_list.html#order_list", orders_context, request))
-
-        response["HX-Trigger"] = json.dumps(
-            {"toast-loaded": {"toast": render_to_string("core/partials/toast.html", {"message": "Успешно сохранено"})}}
-        )
-
+        response.toast_data = {
+            "detail_name": plan_entry.detail.name,
+            "old_quantity": old_quantity,
+            "new_quantity": new_quantity,
+        }
         return response
+
     return HttpResponseBadRequest("Invalid request method")

@@ -84,13 +84,15 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 1060;
+      width: 80%;
+      max-width: 80%;
+      min-width: 40%;
     }
 
     .toast {
-      max-width: 350px;
       width: 100%;
       opacity: 1 !important;
-      transition: opacity 0.25s ease-out; /* Changed from 1s to 0.25s */
+      transition: opacity 0.25s ease-out;
     }
 
     .toast.hiding {
@@ -98,10 +100,10 @@
     }
 
     .toast-body {
-      max-width: 280px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      white-space: normal;
+      word-wrap: break-word;
+      max-height: 150px;
+      overflow-y: auto;
     }
 
     .toast.hide {
