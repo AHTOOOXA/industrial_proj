@@ -73,16 +73,20 @@ class ReportEntryForm(forms.ModelForm):
         self.fields["detail"].queryset = Detail.objects.order_by("name")
         self.helper.layout = Layout(
             Row(
-                Field("machine", wrapper_class="form-group col mb-0",
-                      hx_get="/htmx/machine_options",
-                      hx_include="[name='step'], closest select",
-                      hx_trigger="change from:#id_step, load",
-                      ),
-                Field("detail", wrapper_class="form-group col mb-0",
-                      hx_get="/htmx/detail_options",
-                      hx_include="[name='order'], closest select",
-                      hx_trigger="change from:#id_order, load",
-                      ),
+                Field(
+                    "machine",
+                    wrapper_class="form-group col mb-0",
+                    hx_get="/htmx/machine_options",
+                    hx_include="[name='step'], closest select",
+                    hx_trigger="change from:#id_step, load",
+                ),
+                Field(
+                    "detail",
+                    wrapper_class="form-group col mb-0",
+                    hx_get="/htmx/detail_options",
+                    hx_include="[name='order'], closest select",
+                    hx_trigger="change from:#id_order, load",
+                ),
                 Field("quantity", wrapper_class="form-group col mb-0"),
                 Div(Field("DELETE", wrapper_class="form-group col mb-0"), css_class="d-none"),
                 HTML(
@@ -136,9 +140,12 @@ class OrderForm(forms.ModelForm):
             "date": "Дата",
         }
         widgets = {
-            "date": forms.DateTimeInput(attrs={"type": "datetime-local",
-                                               # 'value': datetime.now().strftime("%Y-%m-%dT%H:%M")
-                                               })
+            "date": forms.DateTimeInput(
+                attrs={
+                    "type": "datetime-local",
+                    # 'value': datetime.now().strftime("%Y-%m-%dT%H:%M")
+                }
+            )
         }
 
 

@@ -90,7 +90,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "OPTIONS": {
             "min_length": 3,
-        }
+        },
     },
 ]
 
@@ -148,11 +148,13 @@ LOGGING = {
         # Default logger for all modules
         "": {
             "level": LOGLEVEL,
-            "handlers": ["console", ],
+            "handlers": [
+                "console",
+            ],
         },
         # Default runserver request logging
         "django.server": DEFAULT_LOGGING["loggers"]["django.server"],
-    }
+    },
 }
 
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1").split(",")
