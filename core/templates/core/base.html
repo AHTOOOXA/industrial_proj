@@ -77,12 +77,51 @@
           color: red;
       }
   </style>
+  <style>
+    #toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1060;
+    }
+
+    .toast {
+      max-width: 350px;
+      width: 100%;
+      opacity: 1 !important;
+      transition: opacity 0.25s ease-out; /* Changed from 1s to 0.25s */
+    }
+
+    .toast.hiding {
+      opacity: 0 !important;
+    }
+
+    .toast-body {
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .toast.hide {
+      display: none;
+    }
+  </style>
+  <style>
+    .toast:not(.hide) {
+      display: block !important;
+    }
+  </style>
   {% block extra_head %}
 
   {% endblock %}
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-indicator="#spinner">
 {% include 'core/navbar.html' %}
+
+<div id="toast-container"></div>
+
 <main class="container-fluid">
   {% if messages %}
     {% for message in messages %}
@@ -129,6 +168,39 @@
     document.body.addEventListener('htmx:afterRequest', function (evt) {
         const body = document.getElementsByTagName('main')[0]
         body.style.opacity = 1.0
+    });
+
+    // Update this event listener for toast-loaded
+    document.body.addEventListener('toast-loaded', function (evt) {
+        var toastContainer = document.getElementById('toast-container');
+        var toastElement = document.getElementById('liveToast');
+
+        if (toastElement) {
+            toastElement.remove();
+        }
+
+        toastContainer.innerHTML = evt.detail.toast;
+
+        var newToastElement = document.getElementById('liveToast');
+        var toast = new bootstrap.Toast(newToastElement, {
+            autohide: true,
+            delay: 3000
+        });
+        toast.show();
+
+        // Add fade-out animation
+        setTimeout(function() {
+            newToastElement.classList.add('hiding');
+        }, 2750);
+
+        // Add event listener for the close button
+        var closeButton = newToastElement.querySelector('.btn-close');
+        closeButton.addEventListener('click', function() {
+            newToastElement.classList.add('hiding');
+            setTimeout(function() {
+                toast.hide();
+            }, 250);
+        });
     });
 </script>
 
