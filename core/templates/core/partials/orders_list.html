@@ -12,152 +12,168 @@
   right: -0px;  /* Adjust as needed to fine-tune horizontal positioning */
   font-size: 0.8em; /* You can adjust the size as needed */
 }
+{% comment %} .orders-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+} {% endcomment %}
+.search-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+{% comment %} .scrollable-list {
+  flex-grow: 1;
+  overflow-y: auto;
+} {% endcomment %}
 </style>
 
 {% load partials %}
-<div class="scrollable" x-data="{ open: {}, search: '' }">
+<div class="orders-container" x-data="{ open: {}, search: '' }">
   {% partialdef order_list inline=True %}
   <div id="orders-list" {% if hx_swap_oob %}hx-swap-oob="true" {% endif %}>
-    <div>
+    <div class="search-bar">
       <input type="text" x-model="search" placeholder="Поиск заказа" class="form-control mb-2">
     </div>
-    {% for order in orders %}
-      {% partialdef order_card inline=True %}
-        <div id="order-card-{{ order.id }}"
-        {% if hx_swap_oob %}hx-swap-oob="true"{% endif %}
-        x-show="search === '' || $el.querySelector('#order-header-name-{{ order.id }}').textContent.toLowerCase().includes(search.toLowerCase())"
-        >
-          <div class="card mb-1" id="order-card">
-            <div class="card-header p-0" {% if not order.is_active %}
-                style="background-color: rosybrown" {% elif order.in_progress %}
-                style="background-color: lightblue" {% endif %}>
-              <div class="row">
-                <div class="col-auto align-self-center p-0 ps-3">
-                  <button @click="open[{{ order.id }}] = !open[{{ order.id }}]" class="btn btn-sm btn-link">
-                    <i :class="open[{{ order.id }}] ? 'bi bi-caret-down-fill' : 'bi bi-caret-right-fill'" style="color: black;"></i>
-                  </button>
-                </div>
-                <div id="order-header-name-{{ order.id }}" class="col-auto align-self-center p-0 order-header-name ms-0">
-                  {{ order.name }} <b>№ {{ order.number }}</b>
-                </div>
-                <div class="col-auto align-self-center order-header-date ms-auto me-0 badge-container">
-                  <span class="percentage ms-auto me-0">
-                    {{ orders_stats|lookup:order.pk|lookup:steps.0.pk|lookup:"reported_p" }}%
-                  </span>
-                  <span class="percentage">
-                    {{ orders_stats|lookup:order.pk|lookup:steps.1.pk|lookup:"reported_p" }}%
-                  </span>
-                </div>
-                {% comment %} <div class="col-auto align-self-center order-header-date ms-0 me-0">
-                  {{ order.date|date:'d.m/H:i' }}
-                </div> {% endcomment %}
-                <div class="col-auto ms-0 me-3">
-                  <div class="row">
-                    <div class="col btn-group btn-group-sm p-1">
-                      {% if order.is_active %}
-                        <a class="btn-primary btn-sm" type="button"
-                          hx-post="{% url 'orders_set_inactive' order.pk %}"
-                          hx-target="closest #order-card"
-                          hx-swap="outerHTML"
-                          hx-trigger="click"
-                          hx-confirm="Вы уверены что вы хотите завершить заказ {{ order.name }} #{{ order.number }}">
-                          <i class="bi bi-clipboard-check-fill"></i>
-                        </a>
-                      {% else %}
-                        <a class="btn-dark btn-sm" type="button"
-                          hx-post="{% url 'orders_set_active' order.pk %}"
-                          hx-target="closest #order-card"
-                          hx-swap="outerHTML"
-                          hx-trigger="click"
-                          hx-confirm="Вы уверены что хотите восстановить заказ {{ order.name }} #{{ order.number }}">
-                          <i class="bi bi-clipboard-check-fill"></i>
-                        </a>
-                      {% endif %}
-                    </div>
-                    <div class="col p-1">
-                      <div class="btn-group btn-group-sm">
-                        <a class="btn btn-secondary" type="button" href="{% url 'orders_edit' order.pk %}">
-                          <i class="bi bi-pencil-fill"></i>
-                        </a>
-                        <button class="btn btn-danger"
-                                type="button"
-                                hx-post="{% url 'orders_delete' order.pk %}"
-                                hx-target="closest #order-card"
-                                hx-swap="outerHTML"
-                                hx-trigger="click"
-                                hx-confirm="Вы уверены что вы хотите удалить {{ order.name }} #{{ order.number }}">
-                          <i class="bi bi-trash-fill"></i>
-                        </button>
+    <div class="scrollable-list">
+      {% for order in orders %}
+        {% partialdef order_card inline=True %}
+          <div id="order-card-{{ order.id }}"
+          {% if hx_swap_oob %}hx-swap-oob="true"{% endif %}
+          x-show="search === '' || $el.querySelector('#order-header-name-{{ order.id }}').textContent.toLowerCase().includes(search.toLowerCase())"
+          >
+            <div class="card mb-1" id="order-card">
+              <div class="card-header p-0" {% if not order.is_active %}
+                  style="background-color: rosybrown" {% elif order.in_progress %}
+                  style="background-color: lightblue" {% endif %}>
+                <div class="row">
+                  <div class="col-auto align-self-center p-0 ps-3">
+                    <button @click="open[{{ order.id }}] = !open[{{ order.id }}]" class="btn btn-sm btn-link">
+                      <i :class="open[{{ order.id }}] ? 'bi bi-caret-down-fill' : 'bi bi-caret-right-fill'" style="color: black;"></i>
+                    </button>
+                  </div>
+                  <div id="order-header-name-{{ order.id }}" class="col-auto align-self-center p-0 order-header-name ms-0">
+                    {{ order.name }} <b>№ {{ order.number }}</b>
+                  </div>
+                  <div class="col-auto align-self-center order-header-date ms-auto me-0 badge-container">
+                    <span class="percentage ms-auto me-0">
+                      {{ orders_stats|lookup:order.pk|lookup:steps.0.pk|lookup:"reported_p" }}%
+                    </span>
+                    <span class="percentage">
+                      {{ orders_stats|lookup:order.pk|lookup:steps.1.pk|lookup:"reported_p" }}%
+                    </span>
+                  </div>
+                  {% comment %} <div class="col-auto align-self-center order-header-date ms-0 me-0">
+                    {{ order.date|date:'d.m/H:i' }}
+                  </div> {% endcomment %}
+                  <div class="col-auto ms-0 me-3">
+                    <div class="row">
+                      <div class="col btn-group btn-group-sm p-1">
+                        {% if order.is_active %}
+                          <a class="btn-primary btn-sm" type="button"
+                            hx-post="{% url 'orders_set_inactive' order.pk %}"
+                            hx-target="closest #order-card"
+                            hx-swap="outerHTML"
+                            hx-trigger="click"
+                            hx-confirm="Вы уверены что вы хотите завершить заказ {{ order.name }} #{{ order.number }}">
+                            <i class="bi bi-clipboard-check-fill"></i>
+                          </a>
+                        {% else %}
+                          <a class="btn-dark btn-sm" type="button"
+                            hx-post="{% url 'orders_set_active' order.pk %}"
+                            hx-target="closest #order-card"
+                            hx-swap="outerHTML"
+                            hx-trigger="click"
+                            hx-confirm="Вы уверены что хотите восстановить заказ {{ order.name }} #{{ order.number }}">
+                            <i class="bi bi-clipboard-check-fill"></i>
+                          </a>
+                        {% endif %}
+                      </div>
+                      <div class="col p-1">
+                        <div class="btn-group btn-group-sm">
+                          <a class="btn btn-secondary" type="button" href="{% url 'orders_edit' order.pk %}">
+                            <i class="bi bi-pencil-fill"></i>
+                          </a>
+                          <button class="btn btn-danger"
+                                  type="button"
+                                  hx-post="{% url 'orders_delete' order.pk %}"
+                                  hx-target="closest #order-card"
+                                  hx-swap="outerHTML"
+                                  hx-trigger="click"
+                                  hx-confirm="Вы уверены что вы хотите удалить {{ order.name }} #{{ order.number }}">
+                            <i class="bi bi-trash-fill"></i>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="card-body" style="padding: 0" x-show="open[{{ order.id }}]">
-              <div id="order-entries-list-{{ order.pk }}">
-                <div class="table-responsive">
-                  <table class="table table-bordered bg-white mb-0 order-table">
-                    <colgroup>
-                      <col class="order-table-names"/>
-                      <col class="order-table-total"/>
-                      <col/>
-                    </colgroup>
-                    <thead class="order-table-heading">
-                    <tr>
-                      <th class="text-center" scope="col" style="width: 35%">Деталь</th>
-                      <th class="text-center" scope="col" style="width: 13%">Всего</th>
-                      {% for step in steps %}
-                        <th class="text-center" scope="col" style="width: 13%"> {{ step.name }} </th>
-                      {% endfor %}
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for order_entry in order.orderentry_set.all %}
+              <div class="card-body" style="padding: 0" x-show="open[{{ order.id }}]">
+                <div id="order-entries-list-{{ order.pk }}">
+                  <div class="table-responsive">
+                    <table class="table table-bordered bg-white mb-0 order-table">
+                      <colgroup>
+                        <col class="order-table-names"/>
+                        <col class="order-table-total"/>
+                        <col/>
+                      </colgroup>
+                      <thead class="order-table-heading">
                       <tr>
-                        <td class="text-center"
-                            @click="highlight = '{{ order }} {{ order_entry.detail }}' === highlight ? '' : '{{ order }} {{ order_entry.detail }}'"
-                            :class="highlight === '{{ order }} {{ order_entry.detail }}' ? 'highlight' : ''"
-                            @dragstart.self="
-                          drag_type = 'order_to_plan';
-                          detail_id_drag = {{ order_entry.detail_id }};
-                          order_id_drag = {{ order.pk }};
-                          leftover_drag = {{ leftovers|lookup:active_step_pk|lookup:order_entry.pk|lookup:'reports_and_plans' }};
-                          console.log(drag_type, detail_id_drag, order_id_drag, leftover_drag);
-                      "
-                            draggable="true">
-                          {{ order_entry.detail }}
-                        </td>
-                        <td class="text-center">
-                          {{ order_entry.quantity }}
-                        </td>
+                        <th class="text-center" scope="col" style="width: 35%">Деталь</th>
+                        <th class="text-center" scope="col" style="width: 13%">Всего</th>
                         {% for step in steps %}
-                          {% with leftovers|lookup:step.pk|lookup:order_entry.pk as lft %}
-                            <td class="text-center">
-                              <div class="{% if lft|lookup:"reports" >= 0 %} order-table-cell-overflow {% endif %}">
-                                {% if lft|lookup:"reports" >= 0 %} + {% endif %}
-                                {{ lft|lookup:"reports" }}
-                              </div>
-                              <div class="{% if lft|lookup:"reports_and_plans" >= 0 %} order-table-cell-overflow {% endif %}"
-                                  style="color: #198754"
-                              >
-                                {% if lft|lookup:"reports_and_plans" >= 0 %} + {% endif %}
-                                {{ lft|lookup:"reports_and_plans" }}
-                              </div>
-                            </td>
-                          {% endwith %}
+                          <th class="text-center" scope="col" style="width: 13%"> {{ step.name }} </th>
                         {% endfor %}
                       </tr>
-                    {% endfor %}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                      {% for order_entry in order.orderentry_set.all %}
+                        <tr>
+                          <td class="text-center"
+                              @click="highlight = '{{ order }} {{ order_entry.detail }}' === highlight ? '' : '{{ order }} {{ order_entry.detail }}'"
+                              :class="highlight === '{{ order }} {{ order_entry.detail }}' ? 'highlight' : ''"
+                              @dragstart.self="
+                            drag_type = 'order_to_plan';
+                            detail_id_drag = {{ order_entry.detail_id }};
+                            order_id_drag = {{ order.pk }};
+                            leftover_drag = {{ leftovers|lookup:active_step_pk|lookup:order_entry.pk|lookup:'reports_and_plans' }};
+                            console.log(drag_type, detail_id_drag, order_id_drag, leftover_drag);
+                        "
+                              draggable="true">
+                            {{ order_entry.detail }}
+                          </td>
+                          <td class="text-center">
+                            {{ order_entry.quantity }}
+                          </td>
+                          {% for step in steps %}
+                            {% with leftovers|lookup:step.pk|lookup:order_entry.pk as lft %}
+                              <td class="text-center">
+                                <div class="{% if lft|lookup:"reports" >= 0 %} order-table-cell-overflow {% endif %}">
+                                  {% if lft|lookup:"reports" >= 0 %} + {% endif %}
+                                  {{ lft|lookup:"reports" }}
+                                </div>
+                                <div class="{% if lft|lookup:"reports_and_plans" >= 0 %} order-table-cell-overflow {% endif %}"
+                                    style="color: #198754"
+                                >
+                                  {% if lft|lookup:"reports_and_plans" >= 0 %} + {% endif %}
+                                  {{ lft|lookup:"reports_and_plans" }}
+                                </div>
+                              </td>
+                            {% endwith %}
+                          {% endfor %}
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      {% endpartialdef %}
-    {% endfor %}
+        {% endpartialdef %}
+      {% endfor %}
+    </div>
   </div>
   {% endpartialdef %}
 </div>
