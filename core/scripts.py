@@ -173,6 +173,7 @@ def get_orders_display(is_active=True, order_id=None):
                         plan_entry.plan.date
                         > datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=2)
                     )
+                    and plan_entry.plan.step_id == step.pk
                 )
                 leftovers[step.pk][order_entry.pk]["reports_and_plans"] = (
                     -order_entry.quantity + total_quantity_reported + total_quantity_planned
