@@ -7,10 +7,14 @@
   position: relative;
 }
 .corner-badge {
-  {% comment %} position: absolute; {% endcomment %}
   top: -5px;  /* Adjust as needed to fine-tune vertical positioning */
   right: -0px;  /* Adjust as needed to fine-tune horizontal positioning */
   font-size: 0.8em; /* You can adjust the size as needed */
+}
+.search-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 </style>
 
@@ -18,7 +22,7 @@
 <div class="scrollable" x-data="{ open: {}, search: '' }">
   {% partialdef order_list inline=True %}
   <div id="orders-list" {% if hx_swap_oob %}hx-swap-oob="true" {% endif %}>
-    <div>
+    <div class="search-bar">
       <input type="text" x-model="search" placeholder="Поиск заказа" class="form-control mb-2">
     </div>
     {% for order in orders %}
