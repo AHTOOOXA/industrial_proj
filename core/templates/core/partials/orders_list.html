@@ -74,16 +74,18 @@
                   {{ order.name }} <b>№ {{ order.number }}</b>
                 </div>
                 <div class="col-auto align-self-center order-header-date ms-auto me-0 badge-container">
-                  <span class="percentage ms-auto me-0">
-                    {{ orders_stats|lookup:order.pk|lookup:steps.0.pk|lookup:"reported_p" }}%
-                  </span>
-                  <span class="percentage">
-                    {{ orders_stats|lookup:order.pk|lookup:steps.1.pk|lookup:"reported_p" }}%
-                  </span>
+                  <div>
+                    <span class="percentage ms-auto me-0">
+                      {{ orders_stats|lookup:order.pk|lookup:steps.0.pk|lookup:"reported_p" }}%
+                    </span>
+                    <span class="percentage">
+                      {{ orders_stats|lookup:order.pk|lookup:steps.1.pk|lookup:"reported_p" }}%
+                    </span>
+                  </div>
+                  <div class="order-header-date">
+                    {{ order.date|date:'d.m/H:i' }}
+                  </div>
                 </div>
-                {% comment %} <div class="col-auto align-self-center order-header-date ms-0 me-0">
-                  {{ order.date|date:'d.m/H:i' }}
-                </div> {% endcomment %}
                 <div class="col-auto ms-0 me-3">
                   <div class="row">
                     <div class="col btn-group btn-group-sm p-1">
