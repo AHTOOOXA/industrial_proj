@@ -1,4 +1,33 @@
 <style>
+.scrollable {
+    height: calc(100vh - 110px);
+    overflow-y: scroll;
+}
+.order-header-name {
+    font-size: 12px;
+}
+.order-header-date {
+  font-size: 12px;
+  text-align: right;
+}
+.order-table-names {
+    background-color: lightgray;
+}
+.order-table-total {
+    background-color: lightgray;
+}
+.order-table-heading tr th {
+    white-space: nowrap;
+    text-overflow: clip;
+    padding: 1px;
+}
+.order-table {
+    font-size: 12px;
+}
+.order-table-cell-overflow {
+    font-weight: bold;
+    color: red;
+}
 .percentage {
   text-align: right;
   font-weight: bold;
@@ -7,10 +36,14 @@
   position: relative;
 }
 .corner-badge {
-  {% comment %} position: absolute; {% endcomment %}
   top: -5px;  /* Adjust as needed to fine-tune vertical positioning */
   right: -0px;  /* Adjust as needed to fine-tune horizontal positioning */
   font-size: 0.8em; /* You can adjust the size as needed */
+}
+.search-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 </style>
 
@@ -18,7 +51,7 @@
 <div class="scrollable" x-data="{ open: {}, search: '' }">
   {% partialdef order_list inline=True %}
   <div id="orders-list" {% if hx_swap_oob %}hx-swap-oob="true" {% endif %}>
-    <div>
+    <div class="search-bar">
       <input type="text" x-model="search" placeholder="Поиск заказа" class="form-control mb-2">
     </div>
     {% for order in orders %}
@@ -41,16 +74,18 @@
                   {{ order.name }} <b>№ {{ order.number }}</b>
                 </div>
                 <div class="col-auto align-self-center order-header-date ms-auto me-0 badge-container">
-                  <span class="percentage ms-auto me-0">
-                    {{ orders_stats|lookup:order.pk|lookup:steps.0.pk|lookup:"reported_p" }}%
-                  </span>
-                  <span class="percentage">
-                    {{ orders_stats|lookup:order.pk|lookup:steps.1.pk|lookup:"reported_p" }}%
-                  </span>
+                  <div>
+                    <span class="percentage ms-auto me-0">
+                      {{ orders_stats|lookup:order.pk|lookup:steps.0.pk|lookup:"reported_p" }}%
+                    </span>
+                    <span class="percentage">
+                      {{ orders_stats|lookup:order.pk|lookup:steps.1.pk|lookup:"reported_p" }}%
+                    </span>
+                  </div>
+                  <div class="order-header-date">
+                    {{ order.date|date:'d.m/H:i' }}
+                  </div>
                 </div>
-                {% comment %} <div class="col-auto align-self-center order-header-date ms-0 me-0">
-                  {{ order.date|date:'d.m/H:i' }}
-                </div> {% endcomment %}
                 <div class="col-auto ms-0 me-3">
                   <div class="row">
                     <div class="col btn-group btn-group-sm p-1">
