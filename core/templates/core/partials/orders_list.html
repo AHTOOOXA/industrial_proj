@@ -1,10 +1,14 @@
 <style>
 .scrollable {
-    height: calc(100vh - 110px);
-    overflow-y: scroll;
+  height: calc(100vh - 110px);
+  overflow-y: scroll;
 }
 .order-header-name {
-    font-size: 12px;
+  font-size: 13px;
+}
+.order-header-number {
+  font-weight: bold;
+  font-size: 12px;
 }
 .order-header-date {
   font-size: 12px;
@@ -70,8 +74,13 @@
                     <i :class="open[{{ order.id }}] ? 'bi bi-caret-down-fill' : 'bi bi-caret-right-fill'" style="color: black;"></i>
                   </button>
                 </div>
-                <div id="order-header-name-{{ order.id }}" class="col-auto align-self-center p-0 order-header-name ms-0">
-                  {{ order.name }} <b>№ {{ order.number }}</b>
+                <div id="order-header-name-{{ order.id }}" class="col-auto align-self-center p-0 ms-0">
+                  <span class="order-header-name">
+                    {{ order.name }}
+                  </span>
+                  <span class="order-header-number">
+                    № {{ order.number }}
+                  </span>
                 </div>
                 <div class="col-auto align-self-center order-header-date ms-auto me-0 badge-container">
                   <div>
