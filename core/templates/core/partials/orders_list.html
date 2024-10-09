@@ -15,12 +15,18 @@
 </style>
 
 {% load partials %}
-<div class="scrollable" x-data="{ open: {} }">
+<div class="scrollable" x-data="{ open: {}, search: '' }">
   {% partialdef order_list inline=True %}
   <div id="orders-list" {% if hx_swap_oob %}hx-swap-oob="true" {% endif %}>
+    <div>
+      <input type="text" x-model="search" placeholder="Поиск заказа" class="form-control mb-2">
+    </div>
     {% for order in orders %}
       {% partialdef order_card inline=True %}
-        <div id="order-card-{{ order.id }}" {% if hx_swap_oob %}hx-swap-oob="true"{% endif %}>
+        <div id="order-card-{{ order.id }}"
+        {% if hx_swap_oob %}hx-swap-oob="true"{% endif %}
+        x-show="search === '' || $el.querySelector('#order-header-name-{{ order.id }}').textContent.toLowerCase().includes(search.toLowerCase())"
+        >
           <div class="card mb-1" id="order-card">
             <div class="card-header p-0" {% if not order.is_active %}
                 style="background-color: rosybrown" {% elif order.in_progress %}
@@ -28,10 +34,10 @@
               <div class="row">
                 <div class="col-auto align-self-center p-0 ps-3">
                   <button @click="open[{{ order.id }}] = !open[{{ order.id }}]" class="btn btn-sm btn-link">
-                    <i :class="open[{{ order.id }}] ? 'bi bi-caret-right-fill' : 'bi bi-caret-down-fill'" style="color: black;"></i>
+                    <i :class="open[{{ order.id }}] ? 'bi bi-caret-down-fill' : 'bi bi-caret-right-fill'" style="color: black;"></i>
                   </button>
                 </div>
-                <div class="col-auto align-self-center p-0 order-header-name ms-0">
+                <div id="order-header-name-{{ order.id }}" class="col-auto align-self-center p-0 order-header-name ms-0">
                   {{ order.name }} <b>№ {{ order.number }}</b>
                 </div>
                 <div class="col-auto align-self-center order-header-date ms-auto me-0 badge-container">
