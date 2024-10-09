@@ -237,7 +237,8 @@ def orders_view_inactive(request):
 
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
-@toast_message(success_message="Заказ успешно добавлен", error_message="Ошибка при добавлении заказа")
+# TODO: fix toast message
+# @toast_message(success_message="Заказ успешно добавлен", error_message="Ошибка при добавлении заказа")
 def orders_add(request):
     if request.method == "GET":
         form = OrderForm(initial={"date": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
@@ -793,7 +794,8 @@ def add_plan_entry_form(request):
 
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
-@toast_message(success_message="План успешно обновлен", error_message="Ошибка при обновлении плана")
+# TODO: fix toast message
+# @toast_message(success_message="План успешно обновлен", error_message="Ошибка при обновлении плана")
 def plan_modal(request):
     if request.method == "GET":
         pk = int(str(request.GET.get("pk")))
