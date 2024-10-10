@@ -146,13 +146,12 @@ def get_orders_display(is_active=True, order_id=None):
     leftovers = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     orders_stats = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     for step in steps:
-        blocked_cells = {
-            (get_shift(report.date), report_entry.machine)
-            for order in orders
-            for report in order.prefetched_reports
-            for report_entry in report.reportentry_set.all()
-            if report.step.pk == step.pk
-        }
+        blocked_cells = set()
+        for order in orders:
+            for report in order.prefetched_reports:
+                if report.step.pk == step.pk:
+                    for report_entry in report.reportentry_set.all():
+                        blocked_cells.add((get_shift(report.date), report_entry.machine))
         for order in orders:
             for order_entry in order.orderentry_set.all():
                 total_quantity_reported = sum(
@@ -165,15 +164,12 @@ def get_orders_display(is_active=True, order_id=None):
                 leftovers[step.pk][order_entry.pk]["reports"] = -order_entry.quantity + total_quantity_reported
                 total_quantity_planned = sum(
                     plan_entry.quantity
-                    if (get_shift(plan_entry.plan.date), plan_entry.plan.machine) not in blocked_cells
-                    else 0
                     for plan_entry in order.prefetched_planentries
                     if plan_entry.detail_id == order_entry.detail_id
-                    and (
-                        plan_entry.plan.date
-                        > datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=2)
-                    )
                     and plan_entry.plan.step_id == step.pk
+                    and plan_entry.plan.date
+                    > datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=2)
+                    and (get_shift(plan_entry.plan.date), plan_entry.plan.machine) not in blocked_cells
                 )
                 leftovers[step.pk][order_entry.pk]["reports_and_plans"] = (
                     -order_entry.quantity + total_quantity_reported + total_quantity_planned

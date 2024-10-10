@@ -37,7 +37,7 @@ target-version = "py311"
 select = ["F", "E", "W", "C90",
           "I", "N", "S", "B", "A",
           "ISC", "T20", "Q", "PTH"]
-ignore = ["A003", "N806"]
+ignore = ["A003", "N806", "C901"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
