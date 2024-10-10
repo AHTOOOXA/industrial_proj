@@ -171,7 +171,7 @@ def get_orders_display(is_active=True, order_id=None):
                     if plan_entry.detail_id == order_entry.detail_id
                     and (
                         plan_entry.plan.date
-                        > datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=2)
+                        > datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=1)
                     )
                     and plan_entry.plan.step_id == step.pk
                 )
