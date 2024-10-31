@@ -898,15 +898,19 @@ def reports_summary(request):
     user_pk = request.GET.get("user_pk")
     month = request.GET.get("month")
     step_pk = request.GET.get("step_pk")
+    force = request.GET.get("force") == "true"
 
     # If no month is selected, default to current month
     if not month:
         month = datetime.datetime.now().strftime("%Y-%m")
 
-    summary_list = get_reports_summary(user_pk=user_pk, month=month, step_pk=step_pk)
-
-    # Calculate total quantity
-    total_quantity = sum(item["total_quantity"] for item in summary_list)
+    # Only fetch data if a specific user is selected or force is True
+    if user_pk or force:
+        summary_list = get_reports_summary(user_pk=user_pk, month=month, step_pk=step_pk)
+        total_quantity = sum(item["total_quantity"] for item in summary_list)
+    else:
+        summary_list = []
+        total_quantity = 0
 
     if request.htmx:
         context = {
@@ -914,6 +918,8 @@ def reports_summary(request):
             "total_quantity": total_quantity,
             "user_pk": user_pk,
             "step_pk": step_pk,
+            "current_month": month,
+            "force": force,  # Pass force to template
         }
         return render(request, "core/reports_summary.html#reports_summary", context)
     else:
@@ -928,6 +934,7 @@ def reports_summary(request):
             "current_month": month,
             "user_pk": user_pk,
             "step_pk": step_pk,
+            "force": force,  # Pass force to template
         }
         return render(request, "core/reports_summary.html", context)
 
