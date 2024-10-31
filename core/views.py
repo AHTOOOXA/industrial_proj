@@ -501,37 +501,30 @@ def report_success(request, pk):
 
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
-def reports_view(request, page=1):
+def reports_view(request):
     user_pk = request.GET.get("user_pk")
-    steps, shift_reports_lists = get_reports_view(page=page, user_pk=user_pk)
+    month = request.GET.get("month")
+
+    # If no month is selected, default to current month
+    if not month:
+        month = datetime.datetime.now().strftime("%Y-%m")
+
+    steps, shift_reports_lists = get_reports_view(user_pk=user_pk, month=month)
+
     if request.htmx:
-        # change shifts partial
-        if page == 1:
-            context = {
-                "steps": steps,
-                "shift_reports_lists": shift_reports_lists,
-                "page": page + 1,
-            }
-            return render(request, "core/partials/reports_shifts.html", context)
-        # load extra page to current shifts partial
-        else:
-            if len(shift_reports_lists) == 0:
-                return HttpResponse("")
-            else:
-                context = {
-                    "steps": steps,
-                    "shift_reports_lists": shift_reports_lists,
-                    "page": page + 1,
-                }
-                return render(request, "core/partials/reports_shifts_next_page.html", context)
+        context = {
+            "steps": steps,
+            "shift_reports_lists": shift_reports_lists,
+        }
+        return render(request, "core/partials/reports_shifts.html", context)
     else:
         # initial page load
         users = User.objects.all().order_by("username")
         context = {
             "steps": steps,
             "shift_reports_lists": shift_reports_lists,
-            "page": page + 1,
             "users": users,
+            "current_month": month,
         }
         return render(request, "core/reports.html", context)
 

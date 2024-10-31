@@ -4,7 +4,6 @@ import re
 from collections import defaultdict
 
 from django.db.models import F, Prefetch
-from django.utils.timezone import make_aware
 from transliterate import translit
 
 from .models import Machine, Order, Plan, PlanEntry, Report, ReportEntry, Step, Table
@@ -196,38 +195,38 @@ def get_orders_display(is_active=True, order_id=None):
 # COMPLETE REFACTOR NEEDED
 # 100+ SIMILAR QUERIES
 # REWORK PAGINATION
-def get_reports_view(shifts_count=10, page=1, user_pk=None):
-    # getting close to cur_time based on Table.current_date to correctly sep shifts
-    from_date = Table.objects.all()[0].current_date
-    cur_time = datetime.datetime.today().replace(hour=0, minute=0, second=0)
-    cur_time = make_aware(cur_time)
-    while from_date < cur_time:
-        from_date += datetime.timedelta(hours=12)
-    from_date += datetime.timedelta(hours=24)
-    from_date -= datetime.timedelta(hours=((page - 1) * shifts_count - (page - 1)) * 12)
-    timestamps = [from_date - datetime.timedelta(hours=12 * i) for i in range(0, shifts_count)]
-
+def get_reports_view(user_pk=None, month=None):
     steps = Step.objects.all()
-    shift_reports_lists = {}
-    for i in range(len(timestamps) - 1):
-        if not user_pk:
-            shift_reports = Report.objects.filter(date__range=(timestamps[i + 1], timestamps[i])).order_by("-date")
-        elif user_pk == "-1":
-            shift_reports = Report.objects.filter(
-                user__isnull=True, date__range=(timestamps[i + 1], timestamps[i])
-            ).order_by("-date")
+
+    # Get reports query with all related data in one query
+    reports = (
+        Report.objects.all()
+        .select_related("user", "order", "step")
+        .prefetch_related("reportentry_set", "reportentry_set__detail", "reportentry_set__machine")
+        .order_by("-date")
+    )
+
+    # Filter by user if specified
+    if user_pk:
+        if user_pk == "-1":
+            reports = reports.filter(user__isnull=True)
         else:
-            shift_reports = Report.objects.filter(
-                user_id=user_pk, date__range=(timestamps[i + 1], timestamps[i])
-            ).order_by("-date")
-        shift_name = str(timestamps[i + 1].strftime("%d.%m")) + (" День" if timestamps[i + 1].hour < 12 else " Ночь")
-        if shift_reports:
-            shift_reports_lists[shift_name] = {}
+            reports = reports.filter(user_id=user_pk)
+
+    # Filter by month if specified
+    if month:
+        year, month = map(int, month.split("-"))
+        reports = reports.filter(date__year=year, date__month=month)
+
+    # Group reports by day
+    reports_by_day = {}
+    for report in reports:
+        day_key = report.date.strftime("%d.%m")
+        if day_key not in reports_by_day:
+            reports_by_day[day_key] = {}
             for step in steps:
-                shift_step_objs = (
-                    shift_reports.filter(step=step)
-                    .prefetch_related("reportentry_set", "reportentry_set__detail", "reportentry_set__machine")
-                    .select_related("user", "order")
-                )
-                shift_reports_lists[shift_name][step] = shift_step_objs
-    return steps, shift_reports_lists
+                reports_by_day[day_key][step] = []
+
+        reports_by_day[day_key][report.step].append(report)
+
+    return steps, reports_by_day

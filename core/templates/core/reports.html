@@ -13,26 +13,32 @@
 {% block content %}
   <div class="row justify-content-center mb-3">
     <div class="row">
-      <div class="col-lg-3 col-md-6 d-grid">
-        <div class="row">
-          <div class="col-12" style="padding: 0">
-            <select class="form-select"
-                    aria-label="User select"
-                    name="user_pk"
-                    hx-get="{% url 'reports_view' page=1 %}"
-                    hx-trigger="change"
-                    hx-target="#reports-shits"
-                    hx-include="[name='user_pk']">
-              <option value="">Все пользователи</option>
-              <option value="-1">Без пользователя</option>
-              {% for user in users %}
-                <option value={{ user.pk }}>{{ user.username }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
+      <div class="col-4">
+        <select class="form-select"
+                aria-label="User select"
+                name="user_pk"
+                hx-get="{% url 'reports_view' %}"
+                hx-trigger="change"
+                hx-target="#reports-shifts"
+                hx-include="[name='month'], [name='user_pk']">
+          <option value="">Все пользователи</option>
+          <option value="-1">Без пользователя</option>
+          {% for user in users %}
+            <option value={{ user.pk }}>{{ user.username }}</option>
+          {% endfor %}
+        </select>
       </div>
-      <div class="col-6 d-grid">
+      <div class="col-4">
+        <input type="month"
+               class="form-control"
+               name="month"
+               value="{{ current_month }}"
+               hx-get="{% url 'reports_view' %}"
+               hx-trigger="change"
+               hx-target="#reports-shifts"
+               hx-include="[name='month'], [name='user_pk']">
+      </div>
+      <div class="col-4 d-grid">
         <a class="btn btn-success"
            type="button"
            href="{% url 'reports_add' %}">
