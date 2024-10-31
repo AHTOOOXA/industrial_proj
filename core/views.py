@@ -510,12 +510,11 @@ def reports_view(request):
     if not month:
         month = datetime.datetime.now().strftime("%Y-%m")
 
-    steps, shift_reports_lists = get_reports_view(user_pk=user_pk, month=month, step_pk=step_pk)
+    _, reports_by_day = get_reports_view(user_pk=user_pk, month=month, step_pk=step_pk)
 
     if request.htmx:
         context = {
-            "steps": steps,
-            "shift_reports_lists": shift_reports_lists,
+            "reports_by_day": reports_by_day,
             "user_pk": user_pk,
             "step_pk": step_pk,
         }
@@ -523,10 +522,9 @@ def reports_view(request):
     else:
         # initial page load
         users = User.objects.all().order_by("username")
-        all_steps = Step.objects.all().order_by("name")
+        all_steps = Step.objects.all()
         context = {
-            "steps": steps,
-            "shift_reports_lists": shift_reports_lists,
+            "reports_by_day": reports_by_day,
             "users": users,
             "all_steps": all_steps,
             "current_month": month,

@@ -196,8 +196,6 @@ def get_orders_display(is_active=True, order_id=None):
 # 100+ SIMILAR QUERIES
 # REWORK PAGINATION
 def get_reports_view(user_pk=None, month=None, step_pk=None):
-    steps = Step.objects.all()
-
     # Get reports query with all related data in one query
     reports = (
         Report.objects.all()
@@ -221,18 +219,13 @@ def get_reports_view(user_pk=None, month=None, step_pk=None):
     # Filter by step if specified
     if step_pk:
         reports = reports.filter(step_id=step_pk)
-        # Only show the selected step in the header
-        steps = steps.filter(id=step_pk)
 
     # Group reports by day
     reports_by_day = {}
     for report in reports:
         day_key = report.date.strftime("%d.%m")
         if day_key not in reports_by_day:
-            reports_by_day[day_key] = {}
-            for step in steps:
-                reports_by_day[day_key][step] = []
+            reports_by_day[day_key] = []
+        reports_by_day[day_key].append(report)
 
-        reports_by_day[day_key][report.step].append(report)
-
-    return steps, reports_by_day
+    return None, reports_by_day

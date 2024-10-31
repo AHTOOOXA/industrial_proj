@@ -88,92 +88,77 @@
     </div>
   </div>
 
-  <div class="row">
-    {% for step in steps %}
-      <div class="col p-1">
-        <h4 class="text-center">
-          {{ step.name }}
-        </h4>
-      </div>
-    {% endfor %}
-    <hr class="mb-0"/>
-  </div>
-
   {% partialdef reports_shifts inline=True %}
-  <div id="reports-shifts" class="row scrollable pt-3">
-    {% for day, step_reports in shift_reports_lists.items %}
+  <div id="reports-shifts" class="scrollable pt-3" hx-swap-oob="true">
+    {% for day, reports in reports_by_day.items %}
       <h5>{{ day }}</h5>
-      {% for step, reports in step_reports.items %}
-        <div class="col-3 mb-3 p-1">
-          <div class="report-list">
-            {% for report in reports %}
-              <div class="card mb-1" id="report-card">
-                <div class="card-header p-2">
-                  <div class="row">
-                    <div class="col">
-                      <div class="report-user">
-                        {{ report.user.username }}
-                      </div>
-                      <div class="report-order-number">
-                        {{ report.order.name }} {{ report.order }}
-                      </div>
-                      <div class="report-header-date">
-                        {{ report.date|date:'d.m.y H:i' }}
-                      </div>
-                    </div>
-                    <div class="col-auto ms-auto">
-                      <div class="btn-group btn-group-sm">
-                        <a class="btn btn-secondary" type="button" href="{% url 'reports_edit' report.pk %}">
-                          <i class="bi bi-pencil-fill"></i>
-                        </a>
-                        <button class="btn btn-danger"
-                                type="button"
-                                hx-post="{% url 'reports_delete' report.pk %}"
-                                hx-target="closest #report-card"
-                                hx-swap="outerHTML"
-                                hx-trigger="click"
-                                hx-confirm="Вы уверены что вы хотите удалить {{ report }}">
-                          <i class="bi bi-trash-fill"></i>
-                        </button>
-                      </div>
-                    </div>
+      <div class="container-fluid col-6">
+        {% for report in reports %}
+          <div class="card mb-3" id="report-card">
+            <div class="card-header p-2">
+              <div class="row">
+                <div class="col">
+                  <div class="report-user">
+                    {{ report.user.username }}
+                  </div>
+                  <div class="report-order-number">
+                    {{ report.order.name }} {{ report.order }}
+                  </div>
+                  <div class="report-header-date">
+                    {{ report.date|date:'d.m.y H:i' }} - <b>{{ report.step.name }}</b>
                   </div>
                 </div>
-                <div class="card-body" style="padding: 0">
-                  <div id="report-entries-list-{{ report.pk }}">
-                    <div class="table-responsive">
-                      <table class="table report-table table-bordered bg-white mb-0">
-                        <thead>
-                        <tr>
-                          <th class="text-center" scope="col">Станок</th>
-                          <th class="text-center" scope="col">Деталь</th>
-                          <th class="text-center" scope="col">Кол.</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for report_entry in report.reportentry_set.all %}
-                          <tr>
-                            <td class="text-center">
-                              {{ report_entry.machine }}
-                            </td>
-                            <td class="text-center">
-                              {{ report_entry.detail }}
-                            </td>
-                            <td class="text-center">
-                              {{ report_entry.quantity }}
-                            </td>
-                          </tr>
-                        {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
+                <div class="col-auto ms-auto">
+                  <div class="btn-group btn-group-sm">
+                    <a class="btn btn-secondary" type="button" href="{% url 'reports_edit' report.pk %}">
+                      <i class="bi bi-pencil-fill"></i>
+                    </a>
+                    <button class="btn btn-danger"
+                            type="button"
+                            hx-post="{% url 'reports_delete' report.pk %}"
+                            hx-target="closest #report-card"
+                            hx-swap="outerHTML"
+                            hx-trigger="click"
+                            hx-confirm="Вы уверены что вы хотите удалить {{ report }}">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
                   </div>
                 </div>
               </div>
-            {% endfor %}
+            </div>
+            <div class="card-body" style="padding: 0">
+              <div id="report-entries-list-{{ report.pk }}">
+                <div class="table-responsive">
+                  <table class="table report-table table-bordered bg-white mb-0">
+                    <thead>
+                    <tr>
+                      <th class="text-center" scope="col">Станок</th>
+                      <th class="text-center" scope="col">Деталь</th>
+                      <th class="text-center" scope="col">Кол.</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for report_entry in report.reportentry_set.all %}
+                      <tr>
+                        <td class="text-center">
+                          {{ report_entry.machine }}
+                        </td>
+                        <td class="text-center">
+                          {{ report_entry.detail }}
+                        </td>
+                        <td class="text-center">
+                          {{ report_entry.quantity }}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      {% endfor %}
+        {% endfor %}
+      </div>
       <hr/>
     {% endfor %}
   </div>
