@@ -12,3 +12,5 @@ gunicorn
 python-json-logger
 whitenoise
 sentry-sdk[django]
+pandas
+openpyxl

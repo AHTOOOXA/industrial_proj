@@ -229,3 +229,52 @@ def get_reports_view(user_pk=None, month=None, step_pk=None):
         reports_by_day[day_key].append(report)
 
     return None, reports_by_day
+
+
+def get_reports_summary(user_pk=None, month=None, step_pk=None):
+    # Get reports query with all related data in one query
+    reports = (
+        Report.objects.all()
+        .select_related("user", "step")
+        .prefetch_related("reportentry_set", "reportentry_set__detail")
+        .order_by("-date")
+    )
+
+    # Apply filters
+    if user_pk:
+        if user_pk == "-1":
+            reports = reports.filter(user__isnull=True)
+        else:
+            reports = reports.filter(user_id=user_pk)
+
+    if month:
+        year, month = map(int, month.split("-"))
+        reports = reports.filter(date__year=year, date__month=month)
+
+    if step_pk:
+        reports = reports.filter(step_id=step_pk)
+
+    # Create summary dictionary
+    summary = {}
+    for report in reports:
+        for entry in report.reportentry_set.all():
+            key = (report.user, report.step, entry.detail)
+            if key not in summary:
+                summary[key] = 0
+            summary[key] += entry.quantity
+
+    # Convert to list of dicts for easier template handling
+    summary_list = [
+        {"user": key[0], "step": key[1], "detail": key[2], "total_quantity": value} for key, value in summary.items()
+    ]
+
+    # Sort by user's name (None users last), then step ID, then detail name
+    summary_list.sort(
+        key=lambda x: (
+            "я" if x["user"] is None else x["user"].username.lower(),  # 'я' to put None users at the end
+            x["step"].id,  # Sort by step ID instead of name
+            x["detail"].name.lower(),  # Case-insensitive detail name sort
+        )
+    )
+
+    return summary_list

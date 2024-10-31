@@ -1,5 +1,7 @@
 import datetime
+import logging
 
+import pandas as pd
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -33,7 +35,9 @@ from .models import (
     Table,
     User,
 )
-from .scripts import TableCell, get_orders_display, get_reports_view, get_shifts_table
+from .scripts import TableCell, get_orders_display, get_reports_summary, get_reports_view, get_shifts_table
+
+logger = logging.getLogger(__name__)
 
 
 @login_required(login_url="login_user")
@@ -625,7 +629,7 @@ def details_add(request):
         form = DetailForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Деталь успешно добавлена")
+            messages.success(request, "Деталь успешно дбавлена")
         return redirect("details_view")
 
 
@@ -849,7 +853,7 @@ def plan_modal(request):
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 @toast_message(
     success_message="Количество обновлено: '{detail_name}' ({old_quantity} → {new_quantity})",
-    error_message="Ошибка при обновлении количества для '{detail_name}'",
+    error_message="Ошибка при обнов��ении количества для '{detail_name}'",
 )
 def update_plan_entry_quantity(request):
     if request.method == "POST":
@@ -879,3 +883,96 @@ def update_plan_entry_quantity(request):
         return response
 
     return HttpResponseBadRequest("Invalid request method")
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def reports_summary(request):
+    user_pk = request.GET.get("user_pk")
+    month = request.GET.get("month")
+    step_pk = request.GET.get("step_pk")
+
+    # If no month is selected, default to current month
+    if not month:
+        month = datetime.datetime.now().strftime("%Y-%m")
+
+    summary_list = get_reports_summary(user_pk=user_pk, month=month, step_pk=step_pk)
+
+    # Calculate total quantity
+    total_quantity = sum(item["total_quantity"] for item in summary_list)
+
+    if request.htmx:
+        context = {
+            "summary_list": summary_list,
+            "total_quantity": total_quantity,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
+        }
+        return render(request, "core/reports_summary.html#reports_summary", context)
+    else:
+        # initial page load
+        users = User.objects.all().order_by("username")
+        all_steps = Step.objects.all()
+        context = {
+            "summary_list": summary_list,
+            "total_quantity": total_quantity,
+            "users": users,
+            "all_steps": all_steps,
+            "current_month": month,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
+        }
+        return render(request, "core/reports_summary.html", context)
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def reports_summary_download(request):
+    user_pk = request.GET.get("user_pk")
+    month = request.GET.get("month")
+    step_pk = request.GET.get("step_pk")
+
+    summary_list = get_reports_summary(user_pk=user_pk, month=month, step_pk=step_pk)
+
+    # Convert summary data to pandas DataFrame
+    data = []
+    for item in summary_list:
+        data.append(
+            {
+                "Пользователь": item["user"].username if item["user"] else "Без пользователя",
+                "Этап": item["step"].name,
+                "Деталь": item["detail"].name,
+                "Количество": item["total_quantity"],
+            }
+        )
+
+    df = pd.DataFrame(data)
+
+    # Add total row
+    total_quantity = sum(item["total_quantity"] for item in summary_list)
+    total_row = pd.DataFrame([{"Пользователь": "ИТОГО", "Этап": "", "Деталь": "", "Количество": total_quantity}])
+    df = pd.concat([total_row, df], ignore_index=True)
+
+    # Create response
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = f"attachment; filename=reports_summary_{month}.xlsx"
+
+    # Write to excel
+    with pd.ExcelWriter(response, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Сводка")
+        worksheet = writer.sheets["Сводка"]
+
+        # Adjust column widths
+        for column in worksheet.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except Exception as e:
+                    logger.error(e)
+            adjusted_width = max_length + 2
+            worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+
+    return response
