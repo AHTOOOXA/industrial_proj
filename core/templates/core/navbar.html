@@ -53,6 +53,10 @@
                  href="{% url 'reports_summary' %}">Сводка</a>
             </li>
             <li class="nav-item">
+              <a class="nav-link {% if "reports_results" in request.path %}active{% endif %}"
+                 href="{% url 'reports_results' %}">Результаты</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link {% if "details" in request.path %}active{% endif %}"
                  href="{% url 'details_view' %}">Детали</a>
             </li>

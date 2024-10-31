@@ -51,4 +51,6 @@ urlpatterns = [
     path("update-plan-entry-quantity/", views.update_plan_entry_quantity, name="update_plan_entry_quantity"),
     path("reports_summary", views.reports_summary, name="reports_summary"),
     path("reports/summary/download", views.reports_summary_download, name="reports_summary_download"),
+    path("reports_results", views.reports_results, name="reports_results"),
+    path("reports/results/download", views.reports_results_download, name="reports_results_download"),
 ]

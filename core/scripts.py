@@ -278,3 +278,54 @@ def get_reports_summary(user_pk=None, month=None, step_pk=None):
     )
 
     return summary_list
+
+
+def get_reports_results(user_pk=None, month=None, step_pk=None):
+    # Get reports query with all related data in one query
+    reports = Report.objects.all().select_related("user", "step").prefetch_related("reportentry_set").order_by("-date")
+
+    # Apply filters
+    if user_pk:
+        if user_pk == "-1":
+            reports = reports.filter(user__isnull=True)
+        else:
+            reports = reports.filter(user_id=user_pk)
+
+    if month:
+        year, month = map(int, month.split("-"))
+        reports = reports.filter(date__year=year, date__month=month)
+
+    if step_pk:
+        reports = reports.filter(step_id=step_pk)
+
+    # Create summary dictionary
+    user_totals = {}
+    total_quantity = 0
+
+    for report in reports:
+        user_key = report.user.username if report.user else None
+        if user_key not in user_totals:
+            user_totals[user_key] = 0
+
+        report_total = sum(entry.quantity for entry in report.reportentry_set.all())
+        user_totals[user_key] += report_total
+        total_quantity += report_total
+
+    # Convert to list of dicts with percentages
+    results_list = [
+        {
+            "username": username,
+            "total_quantity": quantity,
+            "percentage": (quantity / total_quantity * 100) if total_quantity > 0 else 0,
+        }
+        for username, quantity in user_totals.items()
+    ]
+
+    # Sort by quantity descending
+    results_list.sort(key=lambda x: x["total_quantity"], reverse=True)
+
+    # Calculate statistics
+    active_users_count = len([item for item in results_list if item["total_quantity"] > 0])
+    avg_per_user = total_quantity / active_users_count if active_users_count > 0 else 0
+
+    return results_list, total_quantity, avg_per_user, active_users_count

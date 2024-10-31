@@ -1,0 +1,141 @@
+{% extends 'core/base.html' %}
+{% load partials %}
+{% load template_filters %}
+
+{% block extra_head %}
+  <style>
+      .scrollable {
+          height: calc(100vh - 120px);
+          overflow-y: scroll;
+      }
+
+      .summary-table {
+          font-size: 14px;
+      }
+
+      .summary-table th {
+          position: sticky;
+          top: 0;
+          background-color: white;
+          z-index: 1;
+      }
+
+      .total-row {
+          font-weight: bold;
+          background-color: #f8f9fa;
+      }
+
+      .stats-card {
+          background-color: #f8f9fa;
+          border-left: 4px solid #0d6efd;
+      }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center mb-3">
+    <div class="row">
+      <div class="col-3">
+        <select class="form-select"
+                aria-label="User select"
+                name="user_pk"
+                hx-get="{% url 'reports_results' %}"
+                hx-trigger="change"
+                hx-target="#reports-results"
+                hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
+          <option value="">Все пользователи</option>
+          <option value="-1">Без пользователя</option>
+          {% for user in users %}
+            <option value={{ user.pk }} {% if user_pk == user.pk|stringformat:"s" %}selected{% endif %}>
+              {{ user.username }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-3">
+        <select class="form-select"
+                aria-label="Step select"
+                name="step_pk"
+                hx-get="{% url 'reports_results' %}"
+                hx-trigger="change"
+                hx-target="#reports-results"
+                hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
+          <option value="">Все этапы</option>
+          {% for step in all_steps %}
+            <option value={{ step.pk }} {% if step_pk == step.pk|stringformat:"s" %}selected{% endif %}>
+              {{ step.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-3">
+        <input type="month"
+               class="form-control"
+               name="month"
+               value="{{ current_month }}"
+               hx-get="{% url 'reports_results' %}"
+               hx-trigger="change"
+               hx-target="#reports-results"
+               hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
+      </div>
+      <div class="col-3">
+        <a href="{% url 'reports_results_download' %}?month={{ current_month }}&user_pk={{ user_pk|default:'' }}&step_pk={{ step_pk|default:'' }}"
+           class="btn btn-primary w-100">
+          <i class="bi bi-download me-2"></i>Скачать Excel
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% partialdef reports_results inline=True %}
+  <div id="reports-results" class="scrollable pt-3" hx-swap-oob="true">
+    <div class="container-fluid">
+      <div class="row mb-4">
+        <div class="col-4">
+          <div class="card stats-card">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2 text-muted">Общее количество</h6>
+              <h4 class="card-title">{{ total_quantity }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card stats-card">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2 text-muted">Среднее на пользователя</h6>
+              <h4 class="card-title">{{ avg_per_user|floatformat:1 }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card stats-card">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2 text-muted">Активных пользователей</h6>
+              <h4 class="card-title">{{ active_users_count }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table class="table table-bordered table-hover summary-table">
+        <thead>
+          <tr>
+            <th>Пользователь</th>
+            <th class="text-end">Общее количество</th>
+            <th class="text-end">% от общего</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in results_list %}
+            <tr>
+              <td>{{ item.username|default:"Без пользователя" }}</td>
+              <td class="text-end">{{ item.total_quantity }}</td>
+              <td class="text-end">{{ item.percentage|floatformat:1 }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endpartialdef %}
+{% endblock %}

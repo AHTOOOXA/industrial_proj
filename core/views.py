@@ -35,7 +35,14 @@ from .models import (
     Table,
     User,
 )
-from .scripts import TableCell, get_orders_display, get_reports_summary, get_reports_view, get_shifts_table
+from .scripts import (
+    TableCell,
+    get_orders_display,
+    get_reports_results,
+    get_reports_summary,
+    get_reports_view,
+    get_shifts_table,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -759,7 +766,7 @@ def users_edit(request, pk):
         form = UserCreateAdminForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            messages.success(request, "Станок успешно изменен")
+            messages.success(request, "Станок упешно изменен")
         return redirect("users_view")
 
 
@@ -853,7 +860,7 @@ def plan_modal(request):
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 @toast_message(
     success_message="Количество обновлено: '{detail_name}' ({old_quantity} → {new_quantity})",
-    error_message="Ошибка при обнов��ении количества для '{detail_name}'",
+    error_message="Ошибка при обновении количества для '{detail_name}'",
 )
 def update_plan_entry_quantity(request):
     if request.method == "POST":
@@ -961,6 +968,104 @@ def reports_summary_download(request):
     with pd.ExcelWriter(response, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name="Сводка")
         worksheet = writer.sheets["Сводка"]
+
+        # Adjust column widths
+        for column in worksheet.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except Exception as e:
+                    logger.error(e)
+            adjusted_width = max_length + 2
+            worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+
+    return response
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def reports_results(request):
+    user_pk = request.GET.get("user_pk")
+    month = request.GET.get("month")
+    step_pk = request.GET.get("step_pk")
+
+    # If no month is selected, default to current month
+    if not month:
+        month = datetime.datetime.now().strftime("%Y-%m")
+
+    results_list, total_quantity, avg_per_user, active_users_count = get_reports_results(
+        user_pk=user_pk, month=month, step_pk=step_pk
+    )
+
+    if request.htmx:
+        context = {
+            "results_list": results_list,
+            "total_quantity": total_quantity,
+            "avg_per_user": avg_per_user,
+            "active_users_count": active_users_count,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
+        }
+        return render(request, "core/reports_results.html#reports_results", context)
+    else:
+        users = User.objects.all().order_by("username")
+        all_steps = Step.objects.all()
+        context = {
+            "results_list": results_list,
+            "total_quantity": total_quantity,
+            "avg_per_user": avg_per_user,
+            "active_users_count": active_users_count,
+            "users": users,
+            "all_steps": all_steps,
+            "current_month": month,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
+        }
+        return render(request, "core/reports_results.html", context)
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def reports_results_download(request):
+    user_pk = request.GET.get("user_pk")
+    month = request.GET.get("month")
+
+    results_list, total_quantity, avg_per_user, active_users_count = get_reports_results(user_pk=user_pk, month=month)
+
+    # Convert to pandas DataFrame
+    data = []
+    for item in results_list:
+        data.append(
+            {
+                "Пользователь": item["username"] if item["username"] else "Без пользователя",
+                "Общее количество": item["total_quantity"],
+                "% от общего": f"{item['percentage']:.1f}%",
+            }
+        )
+
+    df = pd.DataFrame(data)
+
+    # Add statistics rows
+    stats_data = pd.DataFrame(
+        [
+            {"Пользователь": "ИТОГО", "Общее количество": total_quantity, "% от общего": "100%"},
+            {"Пользователь": "Среднее на пользователя", "Общее количество": avg_per_user, "% от общего": ""},
+            {"Пользователь": "Активных пользователей", "Общее количество": active_users_count, "% от общего": ""},
+        ]
+    )
+    df = pd.concat([stats_data, df], ignore_index=True)
+
+    # Create response
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = f"attachment; filename=reports_results_{month}.xlsx"
+
+    # Write to excel
+    with pd.ExcelWriter(response, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Результаты")
+        worksheet = writer.sheets["Результаты"]
 
         # Adjust column widths
         for column in worksheet.columns:
