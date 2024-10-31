@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load partials %}
 {% load template_filters %}
 
 {% block extra_head %}
@@ -7,32 +8,77 @@
           height: calc(100vh - 120px);
           overflow-y: scroll;
       }
+
+      .report-table {
+          font-size: 12px;
+      }
+
+      .report-user {
+          font-size: 16px;
+          font-weight: bold;
+      }
+
+      .report-header-date {
+          font-size: 12px;
+      }
+
+      .report-list {
+          font-size: 14px;
+      }
+
+      .report-order-number {
+          font-size: 14px;
+      }
   </style>
 {% endblock %}
 
 {% block content %}
   <div class="row justify-content-center mb-3">
     <div class="row">
-      <div class="col-lg-3 col-md-6 d-grid">
-        <div class="row">
-          <div class="col-12" style="padding: 0">
-            <select class="form-select"
-                    aria-label="User select"
-                    name="user_pk"
-                    hx-get="{% url 'reports_view' page=1 %}"
-                    hx-trigger="change"
-                    hx-target="#reports-shits"
-                    hx-include="[name='user_pk']">
-              <option value="">Все пользователи</option>
-              <option value="-1">Без пользователя</option>
-              {% for user in users %}
-                <option value={{ user.pk }}>{{ user.username }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
+      <div class="col-3">
+        <select class="form-select"
+                aria-label="User select"
+                name="user_pk"
+                hx-get="{% url 'reports_view' %}"
+                hx-trigger="change"
+                hx-target="#reports-shifts"
+                hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
+          <option value="">Все пользователи</option>
+          <option value="-1">Без пользователя</option>
+          {% for user in users %}
+            <option value={{ user.pk }} {% if user_pk == user.pk|stringformat:"s" %}selected{% endif %}>
+              {{ user.username }}
+            </option>
+          {% endfor %}
+        </select>
       </div>
-      <div class="col-6 d-grid">
+      <div class="col-3">
+        <select class="form-select"
+                aria-label="Step select"
+                name="step_pk"
+                hx-get="{% url 'reports_view' %}"
+                hx-trigger="change"
+                hx-target="#reports-shifts"
+                hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
+          <option value="">Все этапы</option>
+          {% for step in all_steps %}
+            <option value={{ step.pk }} {% if step_pk == step.pk|stringformat:"s" %}selected{% endif %}>
+              {{ step.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-3">
+        <input type="month"
+               class="form-control"
+               name="month"
+               value="{{ current_month }}"
+               hx-get="{% url 'reports_view' %}"
+               hx-trigger="change"
+               hx-target="#reports-shifts"
+               hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
+      </div>
+      <div class="col-3 d-grid">
         <a class="btn btn-success"
            type="button"
            href="{% url 'reports_add' %}">
@@ -42,17 +88,79 @@
     </div>
   </div>
 
-  <div class="row">
-    {% for step in steps %}
-      <div class="col p-1">
-        <h4 class="text-center">
-          {{ step.name }}
-        </h4>
+  {% partialdef reports_shifts inline=True %}
+  <div id="reports-shifts" class="scrollable pt-3" hx-swap-oob="true">
+    {% for day, reports in reports_by_day.items %}
+      <h5>{{ day }}</h5>
+      <div class="container-fluid col-6">
+        {% for report in reports %}
+          <div class="card mb-3" id="report-card">
+            <div class="card-header p-2">
+              <div class="row">
+                <div class="col">
+                  <div class="report-user">
+                    {{ report.user.username }}
+                  </div>
+                  <div class="report-order-number">
+                    {{ report.order.name }} {{ report.order }}
+                  </div>
+                  <div class="report-header-date">
+                    {{ report.date|date:'d.m.y H:i' }} - <b>{{ report.step.name }}</b>
+                  </div>
+                </div>
+                <div class="col-auto ms-auto">
+                  <div class="btn-group btn-group-sm">
+                    <a class="btn btn-secondary" type="button" href="{% url 'reports_edit' report.pk %}">
+                      <i class="bi bi-pencil-fill"></i>
+                    </a>
+                    <button class="btn btn-danger"
+                            type="button"
+                            hx-post="{% url 'reports_delete' report.pk %}"
+                            hx-target="closest #report-card"
+                            hx-swap="outerHTML"
+                            hx-trigger="click"
+                            hx-confirm="Вы уверены что вы хотите удалить {{ report }}">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body" style="padding: 0">
+              <div id="report-entries-list-{{ report.pk }}">
+                <div class="table-responsive">
+                  <table class="table report-table table-bordered bg-white mb-0">
+                    <thead>
+                    <tr>
+                      <th class="text-center" scope="col">Станок</th>
+                      <th class="text-center" scope="col">Деталь</th>
+                      <th class="text-center" scope="col">Кол.</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for report_entry in report.reportentry_set.all %}
+                      <tr>
+                        <td class="text-center">
+                          {{ report_entry.machine }}
+                        </td>
+                        <td class="text-center">
+                          {{ report_entry.detail }}
+                        </td>
+                        <td class="text-center">
+                          {{ report_entry.quantity }}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
       </div>
+      <hr/>
     {% endfor %}
-    <hr class="mb-0"/>
   </div>
-
-  {% include 'core/partials/reports_shifts.html' %}
-
+  {% endpartialdef %}
 {% endblock %}

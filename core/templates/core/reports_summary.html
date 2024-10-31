@@ -1,0 +1,131 @@
+{% extends 'core/base.html' %}
+{% load partials %}
+{% load template_filters %}
+
+{% block extra_head %}
+  <style>
+      .scrollable {
+          height: calc(100vh - 120px);
+          overflow-y: scroll;
+      }
+
+      .summary-table {
+          font-size: 14px;
+      }
+
+      .summary-table th {
+          position: sticky;
+          top: 0;
+          background-color: white;
+          z-index: 1;
+      }
+
+      .total-row {
+          font-weight: bold;
+          background-color: #f8f9fa;
+      }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center mb-3">
+    <div class="row">
+      <div class="col-3">
+        <select class="form-select"
+                aria-label="User select"
+                name="user_pk"
+                hx-get="{% url 'reports_summary' %}"
+                hx-trigger="change"
+                hx-target="#reports-summary"
+                hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
+          <option value="">Все пользователи</option>
+          <option value="-1">Без пользователя</option>
+          {% for user in users %}
+            <option value={{ user.pk }} {% if user_pk == user.pk|stringformat:"s" %}selected{% endif %}>
+              {{ user.username }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-3">
+        <select class="form-select"
+                aria-label="Step select"
+                name="step_pk"
+                hx-get="{% url 'reports_summary' %}"
+                hx-trigger="change"
+                hx-target="#reports-summary"
+                hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
+          <option value="">Все этапы</option>
+          {% for step in all_steps %}
+            <option value={{ step.pk }} {% if step_pk == step.pk|stringformat:"s" %}selected{% endif %}>
+              {{ step.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-3">
+        <input type="month"
+               class="form-control"
+               name="month"
+               value="{{ current_month }}"
+               hx-get="{% url 'reports_summary' %}"
+               hx-trigger="change"
+               hx-target="#reports-summary"
+               hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
+      </div>
+      <div class="col-3">
+        <a href="{% url 'reports_summary_download' %}?month={{ current_month }}&user_pk={{ user_pk|default:'' }}&step_pk={{ step_pk|default:'' }}"
+           class="btn btn-primary w-100">
+          <i class="bi bi-download me-2"></i>Скачать Excel
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% partialdef reports_summary inline=True %}
+  <div id="reports-summary" class="scrollable pt-3" hx-swap-oob="true">
+    <div class="container-fluid">
+      {% if not user_pk and not force %}
+        <div class="text-center">
+          <div class="alert alert-warning mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Внимание: Большой объем данных может замедлить работу браузера
+          </div>
+          <button class="btn btn-primary"
+                  hx-get="{% url 'reports_summary' %}"
+                  hx-target="#reports-summary"
+                  hx-include="[name='month'], [name='step_pk']"
+                  hx-vals='{"force": "true"}'>
+            <i class="bi bi-table me-2"></i>Загрузить таблицу
+          </button>
+        </div>
+      {% else %}
+        <table class="table table-bordered table-hover summary-table">
+          <thead>
+            <tr>
+              <th>Пользователь</th>
+              <th>Этап</th>
+              <th>Деталь</th>
+              <th class="text-end">Количество</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="total-row">
+              <td colspan="3" class="text-end">Общее количество:</td>
+              <td class="text-end">{{ total_quantity }}</td>
+            </tr>
+            {% for item in summary_list %}
+              <tr>
+                <td>{{ item.user.username|default:"Без пользователя" }}</td>
+                <td>{{ item.step.name }}</td>
+                <td>{{ item.detail.name }}</td>
+                <td class="text-end">{{ item.total_quantity }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+  </div>
+  {% endpartialdef %}
+{% endblock %}

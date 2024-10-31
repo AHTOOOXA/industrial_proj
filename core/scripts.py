@@ -4,7 +4,6 @@ import re
 from collections import defaultdict
 
 from django.db.models import F, Prefetch
-from django.utils.timezone import make_aware
 from transliterate import translit
 
 from .models import Machine, Order, Plan, PlanEntry, Report, ReportEntry, Step, Table
@@ -196,38 +195,137 @@ def get_orders_display(is_active=True, order_id=None):
 # COMPLETE REFACTOR NEEDED
 # 100+ SIMILAR QUERIES
 # REWORK PAGINATION
-def get_reports_view(shifts_count=10, page=1, user_pk=None):
-    # getting close to cur_time based on Table.current_date to correctly sep shifts
-    from_date = Table.objects.all()[0].current_date
-    cur_time = datetime.datetime.today().replace(hour=0, minute=0, second=0)
-    cur_time = make_aware(cur_time)
-    while from_date < cur_time:
-        from_date += datetime.timedelta(hours=12)
-    from_date += datetime.timedelta(hours=24)
-    from_date -= datetime.timedelta(hours=((page - 1) * shifts_count - (page - 1)) * 12)
-    timestamps = [from_date - datetime.timedelta(hours=12 * i) for i in range(0, shifts_count)]
+def get_reports_view(user_pk=None, month=None, step_pk=None):
+    # Get reports query with all related data in one query
+    reports = (
+        Report.objects.all()
+        .select_related("user", "order", "step")
+        .prefetch_related("reportentry_set", "reportentry_set__detail", "reportentry_set__machine")
+        .order_by("-date")
+    )
 
-    steps = Step.objects.all()
-    shift_reports_lists = {}
-    for i in range(len(timestamps) - 1):
-        if not user_pk:
-            shift_reports = Report.objects.filter(date__range=(timestamps[i + 1], timestamps[i])).order_by("-date")
-        elif user_pk == "-1":
-            shift_reports = Report.objects.filter(
-                user__isnull=True, date__range=(timestamps[i + 1], timestamps[i])
-            ).order_by("-date")
+    # Filter by user if specified
+    if user_pk:
+        if user_pk == "-1":
+            reports = reports.filter(user__isnull=True)
         else:
-            shift_reports = Report.objects.filter(
-                user_id=user_pk, date__range=(timestamps[i + 1], timestamps[i])
-            ).order_by("-date")
-        shift_name = str(timestamps[i + 1].strftime("%d.%m")) + (" День" if timestamps[i + 1].hour < 12 else " Ночь")
-        if shift_reports:
-            shift_reports_lists[shift_name] = {}
-            for step in steps:
-                shift_step_objs = (
-                    shift_reports.filter(step=step)
-                    .prefetch_related("reportentry_set", "reportentry_set__detail", "reportentry_set__machine")
-                    .select_related("user", "order")
-                )
-                shift_reports_lists[shift_name][step] = shift_step_objs
-    return steps, shift_reports_lists
+            reports = reports.filter(user_id=user_pk)
+
+    # Filter by month if specified
+    if month:
+        year, month = map(int, month.split("-"))
+        reports = reports.filter(date__year=year, date__month=month)
+
+    # Filter by step if specified
+    if step_pk:
+        reports = reports.filter(step_id=step_pk)
+
+    # Group reports by day
+    reports_by_day = {}
+    for report in reports:
+        day_key = report.date.strftime("%d.%m")
+        if day_key not in reports_by_day:
+            reports_by_day[day_key] = []
+        reports_by_day[day_key].append(report)
+
+    return None, reports_by_day
+
+
+def get_reports_summary(user_pk=None, month=None, step_pk=None):
+    # Get reports query with all related data in one query
+    reports = (
+        Report.objects.all()
+        .select_related("user", "step")
+        .prefetch_related("reportentry_set", "reportentry_set__detail")
+        .order_by("-date")
+    )
+
+    # Apply filters
+    if user_pk:
+        if user_pk == "-1":
+            reports = reports.filter(user__isnull=True)
+        else:
+            reports = reports.filter(user_id=user_pk)
+
+    if month:
+        year, month = map(int, month.split("-"))
+        reports = reports.filter(date__year=year, date__month=month)
+
+    if step_pk:
+        reports = reports.filter(step_id=step_pk)
+
+    # Create summary dictionary
+    summary = {}
+    for report in reports:
+        for entry in report.reportentry_set.all():
+            key = (report.user, report.step, entry.detail)
+            if key not in summary:
+                summary[key] = 0
+            summary[key] += entry.quantity
+
+    # Convert to list of dicts for easier template handling
+    summary_list = [
+        {"user": key[0], "step": key[1], "detail": key[2], "total_quantity": value} for key, value in summary.items()
+    ]
+
+    # Sort by user's name (None users last), then step ID, then detail name
+    summary_list.sort(
+        key=lambda x: (
+            "я" if x["user"] is None else x["user"].username.lower(),  # 'я' to put None users at the end
+            x["step"].id,  # Sort by step ID instead of name
+            x["detail"].name.lower(),  # Case-insensitive detail name sort
+        )
+    )
+
+    return summary_list
+
+
+def get_reports_results(user_pk=None, month=None, step_pk=None):
+    # Get reports query with all related data in one query
+    reports = Report.objects.all().select_related("user", "step").prefetch_related("reportentry_set").order_by("-date")
+
+    # Apply filters
+    if user_pk:
+        if user_pk == "-1":
+            reports = reports.filter(user__isnull=True)
+        else:
+            reports = reports.filter(user_id=user_pk)
+
+    if month:
+        year, month = map(int, month.split("-"))
+        reports = reports.filter(date__year=year, date__month=month)
+
+    if step_pk:
+        reports = reports.filter(step_id=step_pk)
+
+    # Create summary dictionary
+    user_totals = {}
+    total_quantity = 0
+
+    for report in reports:
+        user_key = report.user.username if report.user else None
+        if user_key not in user_totals:
+            user_totals[user_key] = 0
+
+        report_total = sum(entry.quantity for entry in report.reportentry_set.all())
+        user_totals[user_key] += report_total
+        total_quantity += report_total
+
+    # Convert to list of dicts with percentages
+    results_list = [
+        {
+            "username": username,
+            "total_quantity": quantity,
+            "percentage": (quantity / total_quantity * 100) if total_quantity > 0 else 0,
+        }
+        for username, quantity in user_totals.items()
+    ]
+
+    # Sort by quantity descending
+    results_list.sort(key=lambda x: x["total_quantity"], reverse=True)
+
+    # Calculate statistics
+    active_users_count = len([item for item in results_list if item["total_quantity"] > 0])
+    avg_per_user = total_quantity / active_users_count if active_users_count > 0 else 0
+
+    return results_list, total_quantity, avg_per_user, active_users_count

@@ -1,5 +1,7 @@
 import datetime
+import logging
 
+import pandas as pd
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -33,7 +35,16 @@ from .models import (
     Table,
     User,
 )
-from .scripts import TableCell, get_orders_display, get_reports_view, get_shifts_table
+from .scripts import (
+    TableCell,
+    get_orders_display,
+    get_reports_results,
+    get_reports_summary,
+    get_reports_view,
+    get_shifts_table,
+)
+
+logger = logging.getLogger(__name__)
 
 
 @login_required(login_url="login_user")
@@ -501,37 +512,35 @@ def report_success(request, pk):
 
 @login_required(login_url="login_user")
 @allowed_user_roles(["ADMIN", "MODERATOR"])
-def reports_view(request, page=1):
+def reports_view(request):
     user_pk = request.GET.get("user_pk")
-    steps, shift_reports_lists = get_reports_view(page=page, user_pk=user_pk)
+    month = request.GET.get("month")
+    step_pk = request.GET.get("step_pk")
+
+    # If no month is selected, default to current month
+    if not month:
+        month = datetime.datetime.now().strftime("%Y-%m")
+
+    _, reports_by_day = get_reports_view(user_pk=user_pk, month=month, step_pk=step_pk)
+
     if request.htmx:
-        # change shifts partial
-        if page == 1:
-            context = {
-                "steps": steps,
-                "shift_reports_lists": shift_reports_lists,
-                "page": page + 1,
-            }
-            return render(request, "core/partials/reports_shifts.html", context)
-        # load extra page to current shifts partial
-        else:
-            if len(shift_reports_lists) == 0:
-                return HttpResponse("")
-            else:
-                context = {
-                    "steps": steps,
-                    "shift_reports_lists": shift_reports_lists,
-                    "page": page + 1,
-                }
-                return render(request, "core/partials/reports_shifts_next_page.html", context)
+        context = {
+            "reports_by_day": reports_by_day,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
+        }
+        return render(request, "core/reports.html#reports_shifts", context)
     else:
         # initial page load
         users = User.objects.all().order_by("username")
+        all_steps = Step.objects.all()
         context = {
-            "steps": steps,
-            "shift_reports_lists": shift_reports_lists,
-            "page": page + 1,
+            "reports_by_day": reports_by_day,
             "users": users,
+            "all_steps": all_steps,
+            "current_month": month,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
         }
         return render(request, "core/reports.html", context)
 
@@ -627,7 +636,7 @@ def details_add(request):
         form = DetailForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Деталь успешно добавлена")
+            messages.success(request, "Деталь успешно дбавлена")
         return redirect("details_view")
 
 
@@ -757,7 +766,7 @@ def users_edit(request, pk):
         form = UserCreateAdminForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            messages.success(request, "Станок успешно изменен")
+            messages.success(request, "Станок упешно изменен")
         return redirect("users_view")
 
 
@@ -851,7 +860,7 @@ def plan_modal(request):
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 @toast_message(
     success_message="Количество обновлено: '{detail_name}' ({old_quantity} → {new_quantity})",
-    error_message="Ошибка при обновлении количества для '{detail_name}'",
+    error_message="Ошибка при обновении количества для '{detail_name}'",
 )
 def update_plan_entry_quantity(request):
     if request.method == "POST":
@@ -881,3 +890,201 @@ def update_plan_entry_quantity(request):
         return response
 
     return HttpResponseBadRequest("Invalid request method")
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def reports_summary(request):
+    user_pk = request.GET.get("user_pk")
+    month = request.GET.get("month")
+    step_pk = request.GET.get("step_pk")
+    force = request.GET.get("force") == "true"
+
+    # If no month is selected, default to current month
+    if not month:
+        month = datetime.datetime.now().strftime("%Y-%m")
+
+    # Only fetch data if a specific user is selected or force is True
+    if user_pk or force:
+        summary_list = get_reports_summary(user_pk=user_pk, month=month, step_pk=step_pk)
+        total_quantity = sum(item["total_quantity"] for item in summary_list)
+    else:
+        summary_list = []
+        total_quantity = 0
+
+    if request.htmx:
+        context = {
+            "summary_list": summary_list,
+            "total_quantity": total_quantity,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
+            "current_month": month,
+            "force": force,  # Pass force to template
+        }
+        return render(request, "core/reports_summary.html#reports_summary", context)
+    else:
+        # initial page load
+        users = User.objects.all().order_by("username")
+        all_steps = Step.objects.all()
+        context = {
+            "summary_list": summary_list,
+            "total_quantity": total_quantity,
+            "users": users,
+            "all_steps": all_steps,
+            "current_month": month,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
+            "force": force,  # Pass force to template
+        }
+        return render(request, "core/reports_summary.html", context)
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def reports_summary_download(request):
+    user_pk = request.GET.get("user_pk")
+    month = request.GET.get("month")
+    step_pk = request.GET.get("step_pk")
+
+    summary_list = get_reports_summary(user_pk=user_pk, month=month, step_pk=step_pk)
+
+    # Convert summary data to pandas DataFrame
+    data = []
+    for item in summary_list:
+        data.append(
+            {
+                "Пользователь": item["user"].username if item["user"] else "Без пользователя",
+                "Этап": item["step"].name,
+                "Деталь": item["detail"].name,
+                "Количество": item["total_quantity"],
+            }
+        )
+
+    df = pd.DataFrame(data)
+
+    # Add total row
+    total_quantity = sum(item["total_quantity"] for item in summary_list)
+    total_row = pd.DataFrame([{"Пользователь": "ИТОГО", "Этап": "", "Деталь": "", "Количество": total_quantity}])
+    df = pd.concat([total_row, df], ignore_index=True)
+
+    # Create response
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = f"attachment; filename=reports_summary_{month}.xlsx"
+
+    # Write to excel
+    with pd.ExcelWriter(response, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Сводка")
+        worksheet = writer.sheets["Сводка"]
+
+        # Adjust column widths
+        for column in worksheet.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except Exception as e:
+                    logger.error(e)
+            adjusted_width = max_length + 2
+            worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+
+    return response
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def reports_results(request):
+    user_pk = request.GET.get("user_pk")
+    month = request.GET.get("month")
+    step_pk = request.GET.get("step_pk")
+
+    # If no month is selected, default to current month
+    if not month:
+        month = datetime.datetime.now().strftime("%Y-%m")
+
+    results_list, total_quantity, avg_per_user, active_users_count = get_reports_results(
+        user_pk=user_pk, month=month, step_pk=step_pk
+    )
+
+    if request.htmx:
+        context = {
+            "results_list": results_list,
+            "total_quantity": total_quantity,
+            "avg_per_user": avg_per_user,
+            "active_users_count": active_users_count,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
+        }
+        return render(request, "core/reports_results.html#reports_results", context)
+    else:
+        users = User.objects.all().order_by("username")
+        all_steps = Step.objects.all()
+        context = {
+            "results_list": results_list,
+            "total_quantity": total_quantity,
+            "avg_per_user": avg_per_user,
+            "active_users_count": active_users_count,
+            "users": users,
+            "all_steps": all_steps,
+            "current_month": month,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
+        }
+        return render(request, "core/reports_results.html", context)
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def reports_results_download(request):
+    user_pk = request.GET.get("user_pk")
+    month = request.GET.get("month")
+
+    results_list, total_quantity, avg_per_user, active_users_count = get_reports_results(user_pk=user_pk, month=month)
+
+    # Convert to pandas DataFrame
+    data = []
+    for item in results_list:
+        data.append(
+            {
+                "Пользователь": item["username"] if item["username"] else "Без пользователя",
+                "Общее количество": item["total_quantity"],
+                "% от общего": f"{item['percentage']:.1f}%",
+            }
+        )
+
+    df = pd.DataFrame(data)
+
+    # Add statistics rows
+    stats_data = pd.DataFrame(
+        [
+            {"Пользователь": "ИТОГО", "Общее количество": total_quantity, "% от общего": "100%"},
+            {"Пользователь": "Среднее на пользователя", "Общее количество": avg_per_user, "% от общего": ""},
+            {"Пользователь": "Активных пользователей", "Общее количество": active_users_count, "% от общего": ""},
+        ]
+    )
+    df = pd.concat([stats_data, df], ignore_index=True)
+
+    # Create response
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = f"attachment; filename=reports_results_{month}.xlsx"
+
+    # Write to excel
+    with pd.ExcelWriter(response, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Результаты")
+        worksheet = writer.sheets["Результаты"]
+
+        # Adjust column widths
+        for column in worksheet.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except Exception as e:
+                    logger.error(e)
+            adjusted_width = max_length + 2
+            worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+
+    return response
