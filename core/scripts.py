@@ -195,7 +195,7 @@ def get_orders_display(is_active=True, order_id=None):
 # COMPLETE REFACTOR NEEDED
 # 100+ SIMILAR QUERIES
 # REWORK PAGINATION
-def get_reports_view(user_pk=None, month=None):
+def get_reports_view(user_pk=None, month=None, step_pk=None):
     steps = Step.objects.all()
 
     # Get reports query with all related data in one query
@@ -217,6 +217,12 @@ def get_reports_view(user_pk=None, month=None):
     if month:
         year, month = map(int, month.split("-"))
         reports = reports.filter(date__year=year, date__month=month)
+
+    # Filter by step if specified
+    if step_pk:
+        reports = reports.filter(step_id=step_pk)
+        # Only show the selected step in the header
+        steps = steps.filter(id=step_pk)
 
     # Group reports by day
     reports_by_day = {}

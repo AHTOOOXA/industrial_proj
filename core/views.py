@@ -504,27 +504,34 @@ def report_success(request, pk):
 def reports_view(request):
     user_pk = request.GET.get("user_pk")
     month = request.GET.get("month")
+    step_pk = request.GET.get("step_pk")
 
     # If no month is selected, default to current month
     if not month:
         month = datetime.datetime.now().strftime("%Y-%m")
 
-    steps, shift_reports_lists = get_reports_view(user_pk=user_pk, month=month)
+    steps, shift_reports_lists = get_reports_view(user_pk=user_pk, month=month, step_pk=step_pk)
 
     if request.htmx:
         context = {
             "steps": steps,
             "shift_reports_lists": shift_reports_lists,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
         }
-        return render(request, "core/reports.html#reports-shifts", context)
+        return render(request, "core/reports.html#reports_shifts", context)
     else:
-        # Render the full page for initial load
+        # initial page load
         users = User.objects.all().order_by("username")
+        all_steps = Step.objects.all().order_by("name")
         context = {
             "steps": steps,
             "shift_reports_lists": shift_reports_lists,
             "users": users,
+            "all_steps": all_steps,
             "current_month": month,
+            "user_pk": user_pk,
+            "step_pk": step_pk,
         }
         return render(request, "core/reports.html", context)
 

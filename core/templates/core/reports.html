@@ -35,22 +35,40 @@
 {% block content %}
   <div class="row justify-content-center mb-3">
     <div class="row">
-      <div class="col-4">
+      <div class="col-3">
         <select class="form-select"
                 aria-label="User select"
                 name="user_pk"
                 hx-get="{% url 'reports_view' %}"
                 hx-trigger="change"
                 hx-target="#reports-shifts"
-                hx-include="[name='month'], [name='user_pk']">
+                hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
           <option value="">Все пользователи</option>
           <option value="-1">Без пользователя</option>
           {% for user in users %}
-            <option value={{ user.pk }}>{{ user.username }}</option>
+            <option value={{ user.pk }} {% if user_pk == user.pk|stringformat:"s" %}selected{% endif %}>
+              {{ user.username }}
+            </option>
           {% endfor %}
         </select>
       </div>
-      <div class="col-4">
+      <div class="col-3">
+        <select class="form-select"
+                aria-label="Step select"
+                name="step_pk"
+                hx-get="{% url 'reports_view' %}"
+                hx-trigger="change"
+                hx-target="#reports-shifts"
+                hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
+          <option value="">Все этапы</option>
+          {% for step in all_steps %}
+            <option value={{ step.pk }} {% if step_pk == step.pk|stringformat:"s" %}selected{% endif %}>
+              {{ step.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-3">
         <input type="month"
                class="form-control"
                name="month"
@@ -58,9 +76,9 @@
                hx-get="{% url 'reports_view' %}"
                hx-trigger="change"
                hx-target="#reports-shifts"
-               hx-include="[name='month'], [name='user_pk']">
+               hx-include="[name='month'], [name='user_pk'], [name='step_pk']">
       </div>
-      <div class="col-4 d-grid">
+      <div class="col-3 d-grid">
         <a class="btn btn-success"
            type="button"
            href="{% url 'reports_add' %}">
@@ -158,6 +176,6 @@
       {% endfor %}
       <hr/>
     {% endfor %}
-    </div>
+  </div>
   {% endpartialdef %}
 {% endblock %}
