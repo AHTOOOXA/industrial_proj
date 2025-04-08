@@ -342,6 +342,7 @@ def get_surplus_data():
         - steps: List of all steps
         - surplus_data: Dictionary with key = (previous_step, next_step), value = {detail_id: surplus}
         - detail_names: Dictionary with key = detail_id, value = detail name
+        - detail_orders: Dictionary with key = detail_id, value = set of order information strings
     """
     # Get all steps in order
     steps = Step.objects.all().order_by("id")
@@ -359,6 +360,7 @@ def get_surplus_data():
     # Initialize data structures
     surplus_data = defaultdict(lambda: defaultdict(int))
     detail_names = {}
+    detail_orders = defaultdict(set)  # Use defaultdict(set) to store multiple orders per detail
 
     # For each pair of consecutive steps
     for i in range(len(steps) - 1):
@@ -368,6 +370,9 @@ def get_surplus_data():
 
         # For each order
         for order in orders:
+            # Format order information like "Терра № 2305"
+            order_info = f"{order.name} № {order.number}"
+
             # Group report entries by detail_id for the previous step
             prev_step_quantities = defaultdict(int)
             for report in order.prefetched_reports:
@@ -375,6 +380,8 @@ def get_surplus_data():
                     for entry in report.reportentry_set.all():
                         prev_step_quantities[entry.detail_id] += entry.quantity
                         detail_names[entry.detail_id] = entry.detail.name
+                        # Add order information to the set for this detail
+                        detail_orders[entry.detail_id].add(order_info)
 
             # Group report entries by detail_id for the next step
             next_step_quantities = defaultdict(int)
@@ -383,6 +390,8 @@ def get_surplus_data():
                     for entry in report.reportentry_set.all():
                         next_step_quantities[entry.detail_id] += entry.quantity
                         detail_names[entry.detail_id] = entry.detail.name
+                        # Add order information to the set for this detail
+                        detail_orders[entry.detail_id].add(order_info)
 
             # Calculate surplus for each detail
             all_detail_ids = set(prev_step_quantities.keys()) | set(next_step_quantities.keys())
@@ -393,4 +402,4 @@ def get_surplus_data():
                 surplus_data[step_pair][detail_id] = prev_qty - next_qty
 
     # Return the calculated data
-    return steps, surplus_data, detail_names
+    return steps, surplus_data, detail_names, detail_orders

@@ -26,6 +26,7 @@
                   <thead>
                     <tr>
                       <th>Деталь</th>
+                      <th>Заказ</th>
                       <th class="text-center">Остаток</th>
                       <th class="text-center">Статус</th>
                     </tr>
@@ -34,6 +35,7 @@
                     {% for detail in step_pair.details %}
                       <tr>
                         <td>{{ detail.name }}</td>
+                        <td>{{ detail.order }}</td>
                         <td class="text-center fw-bold">{{ detail.surplus }}</td>
                         <td class="text-center">
                           {% if detail.status == 'positive' %}

@@ -1095,7 +1095,7 @@ def reports_results_download(request):
 @allowed_user_roles(["ADMIN", "MODERATOR"])
 def surplus(request):
     # Get surplus data for active orders
-    steps, surplus_data, detail_names = get_surplus_data()
+    steps, surplus_data, detail_names, detail_orders = get_surplus_data()
 
     # Create a more template-friendly data structure
     step_pairs = []
@@ -1108,11 +1108,16 @@ def surplus(request):
         details_surplus = []
         for detail_id, surplus in surplus_data[step_pair].items():
             if surplus != 0:  # Only include non-zero surplus
+                # Join set of orders into a comma-separated string
+                order_list = detail_orders.get(detail_id, set())
+                order_string = ", ".join(sorted(order_list))
+
                 details_surplus.append(
                     {
                         "name": detail_names[detail_id],
                         "surplus": surplus,
                         "status": "positive" if surplus > 0 else "negative",
+                        "order": order_string,  # Add combined order information
                     }
                 )
 
