@@ -11,7 +11,7 @@ services:
     container_name: django_app
     command: >
       sh -c "python manage.py migrate &&
-             gunicorn industrial.wsgi:application --bind 0.0.0.0:8000 --log-config /app/gunicorn/gunicorn-logging.conf"
+             gunicorn industrial.wsgi:application --bind 0.0.0.0:8000 --workers 2 --log-config /app/gunicorn/gunicorn-logging.conf"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles

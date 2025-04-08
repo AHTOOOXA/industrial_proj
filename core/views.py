@@ -42,6 +42,7 @@ from .scripts import (
     get_reports_summary,
     get_reports_view,
     get_shifts_table,
+    get_surplus_data,
 )
 
 logger = logging.getLogger(__name__)
@@ -1088,3 +1089,43 @@ def reports_results_download(request):
             worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
 
     return response
+
+
+@login_required(login_url="login_user")
+@allowed_user_roles(["ADMIN", "MODERATOR"])
+def surplus(request):
+    # Get surplus data for active orders
+    steps, surplus_data, detail_names, detail_orders = get_surplus_data()
+
+    # Create a more template-friendly data structure
+    step_pairs = []
+    for i in range(len(steps) - 1):
+        prev_step = steps[i]
+        next_step = steps[i + 1]
+        step_pair = (prev_step, next_step)
+
+        # Get surplus details for this step pair
+        details_surplus = []
+        for detail_id, surplus in surplus_data[step_pair].items():
+            if surplus != 0:  # Only include non-zero surplus
+                # Join set of orders into a comma-separated string
+                order_list = detail_orders.get(detail_id, set())
+                order_string = ", ".join(sorted(order_list))
+
+                details_surplus.append(
+                    {
+                        "name": detail_names[detail_id],
+                        "surplus": surplus,
+                        "status": "positive" if surplus > 0 else "negative",
+                        "order": order_string,  # Add combined order information
+                    }
+                )
+
+        # Sort by absolute surplus value (descending)
+        details_surplus.sort(key=lambda x: abs(x["surplus"]), reverse=True)
+
+        step_pairs.append({"prev_step": prev_step, "next_step": next_step, "details": details_surplus})
+
+    context = {"step_pairs": step_pairs}
+
+    return render(request, "core/surplus.html", context)
