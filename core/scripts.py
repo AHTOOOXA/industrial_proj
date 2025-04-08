@@ -329,3 +329,68 @@ def get_reports_results(user_pk=None, month=None, step_pk=None):
     avg_per_user = total_quantity / active_users_count if active_users_count > 0 else 0
 
     return results_list, total_quantity, avg_per_user, active_users_count
+
+
+def get_surplus_data():
+    """
+    Calculate surplus of details between steps for active orders.
+    Shows how many more details in the previous step are done in comparison with the next step.
+    A positive value means more details were processed in the previous step than the next one.
+    A negative value means more details were processed in the next step than the previous one.
+
+    Returns:
+        - steps: List of all steps
+        - surplus_data: Dictionary with key = (previous_step, next_step), value = {detail_id: surplus}
+        - detail_names: Dictionary with key = detail_id, value = detail name
+    """
+    # Get all steps in order
+    steps = Step.objects.all().order_by("id")
+
+    # Get all active orders with related data
+    orders = Order.objects.filter(is_active=True).prefetch_related(
+        "report_set",
+        Prefetch(
+            "report_set",
+            queryset=Report.objects.prefetch_related("reportentry_set").select_related("step"),
+            to_attr="prefetched_reports",
+        ),
+    )
+
+    # Initialize data structures
+    surplus_data = defaultdict(lambda: defaultdict(int))
+    detail_names = {}
+
+    # For each pair of consecutive steps
+    for i in range(len(steps) - 1):
+        prev_step = steps[i]
+        next_step = steps[i + 1]
+        step_pair = (prev_step, next_step)
+
+        # For each order
+        for order in orders:
+            # Group report entries by detail_id for the previous step
+            prev_step_quantities = defaultdict(int)
+            for report in order.prefetched_reports:
+                if report.step_id == prev_step.id:
+                    for entry in report.reportentry_set.all():
+                        prev_step_quantities[entry.detail_id] += entry.quantity
+                        detail_names[entry.detail_id] = entry.detail.name
+
+            # Group report entries by detail_id for the next step
+            next_step_quantities = defaultdict(int)
+            for report in order.prefetched_reports:
+                if report.step_id == next_step.id:
+                    for entry in report.reportentry_set.all():
+                        next_step_quantities[entry.detail_id] += entry.quantity
+                        detail_names[entry.detail_id] = entry.detail.name
+
+            # Calculate surplus for each detail
+            all_detail_ids = set(prev_step_quantities.keys()) | set(next_step_quantities.keys())
+            for detail_id in all_detail_ids:
+                prev_qty = prev_step_quantities[detail_id]
+                next_qty = next_step_quantities[detail_id]
+                # Calculate surplus as prev_qty - next_qty
+                surplus_data[step_pair][detail_id] = prev_qty - next_qty
+
+    # Return the calculated data
+    return steps, surplus_data, detail_names

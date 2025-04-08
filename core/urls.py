@@ -53,4 +53,5 @@ urlpatterns = [
     path("reports/summary/download", views.reports_summary_download, name="reports_summary_download"),
     path("reports_results", views.reports_results, name="reports_results"),
     path("reports/results/download", views.reports_results_download, name="reports_results_download"),
+    path("surplus", views.surplus, name="surplus"),
 ]

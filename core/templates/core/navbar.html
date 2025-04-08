@@ -45,6 +45,10 @@
                  href="{% url 'orders_view' %}">Заказы</a>
             </li>
             <li class="nav-item">
+              <a class="nav-link {% if "surplus" in request.path %}active{% endif %}"
+                 href="{% url 'surplus' %}">Запасы</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link {% if request.path == '/reports' %}active{% endif %}"
                  href="{% url 'reports_view' %}">Отчеты</a>
             </li>
