@@ -352,7 +352,7 @@ def get_surplus_data():
         "report_set",
         Prefetch(
             "report_set",
-            queryset=Report.objects.prefetch_related("reportentry_set").select_related("step"),
+            queryset=Report.objects.prefetch_related("reportentry_set__detail").select_related("step"),
             to_attr="prefetched_reports",
         ),
     )

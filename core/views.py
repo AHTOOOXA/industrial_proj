@@ -1097,35 +1097,67 @@ def surplus(request):
     # Get surplus data for active orders
     steps, surplus_data, detail_names, detail_orders = get_surplus_data()
 
-    # Create a more template-friendly data structure
-    step_pairs = []
+    # Group details by step pair, then by order
+    step_pair_orders = {}
+
+    # For each step pair, organize details by order
     for i in range(len(steps) - 1):
         prev_step = steps[i]
         next_step = steps[i + 1]
         step_pair = (prev_step, next_step)
 
-        # Get surplus details for this step pair
-        details_surplus = []
+        # Create structure for this step pair if it doesn't exist
+        if step_pair not in step_pair_orders:
+            step_pair_orders[step_pair] = {}
+
         for detail_id, surplus in surplus_data[step_pair].items():
             if surplus != 0:  # Only include non-zero surplus
-                # Join set of orders into a comma-separated string
-                order_list = detail_orders.get(detail_id, set())
-                order_string = ", ".join(sorted(order_list))
+                for order_info in detail_orders.get(detail_id, set()):
+                    # Create list for this order if it doesn't exist
+                    if order_info not in step_pair_orders[step_pair]:
+                        step_pair_orders[step_pair][order_info] = []
 
-                details_surplus.append(
-                    {
-                        "name": detail_names[detail_id],
-                        "surplus": surplus,
-                        "status": "positive" if surplus > 0 else "negative",
-                        "order": order_string,  # Add combined order information
-                    }
-                )
+                    # Add detail to this order for this step pair
+                    step_pair_orders[step_pair][order_info].append(
+                        {
+                            "detail_id": detail_id,  # Include detail_id for sorting
+                            "name": detail_names[detail_id],
+                            "surplus": surplus,
+                            "status": "positive" if surplus > 0 else "negative",
+                        }
+                    )
 
-        # Sort by absolute surplus value (descending)
-        details_surplus.sort(key=lambda x: abs(x["surplus"]), reverse=True)
+    # Final data structure for template
+    step_pairs_data = []
 
-        step_pairs.append({"prev_step": prev_step, "next_step": next_step, "details": details_surplus})
+    # Process each step pair in order
+    for i in range(len(steps) - 1):
+        prev_step = steps[i]
+        next_step = steps[i + 1]
+        step_pair = (prev_step, next_step)
 
-    context = {"step_pairs": step_pairs}
+        if step_pair not in step_pair_orders:
+            continue  # Skip if no data for this step pair
+
+        # Sort orders by number (descending)
+        orders = sorted(
+            step_pair_orders[step_pair].keys(),
+            key=lambda x: int(x.split("№")[1].strip()) if "№" in x else 0,
+            reverse=True,
+        )
+
+        # Process orders for this step pair
+        orders_data = []
+        for order_info in orders:
+            # Sort details by detail_id to match order entry sequence
+            details = step_pair_orders[step_pair][order_info]
+            details.sort(key=lambda x: x["detail_id"])
+
+            orders_data.append({"order_info": order_info, "details": details})
+
+        # Add step pair with its orders
+        step_pairs_data.append({"prev_step": prev_step, "next_step": next_step, "orders": orders_data})
+
+    context = {"step_pairs_data": step_pairs_data}
 
     return render(request, "core/surplus.html", context)
